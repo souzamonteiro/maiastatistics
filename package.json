@@ -1,0 +1,35 @@
+{
+    "name": "maiastatistics",
+    "version": "1.0.0",
+    "description": "MaiaScript Statistics Package.",
+    "keywords": [
+        "maia",
+        "maiascript",
+        "scientific computing",
+        "statistics"
+    ],
+    "author": "The MaiaScript Team (https://www.maiascript.com)",
+    "license": "Apache-2.0",
+    "homepage": "https://www.maiascript.com",
+    "bugs": {
+        "url": "https://github.com/souzamonteiro/maiastatistics/issues"
+    },
+    "main": "bin/maiastatistics.maia",
+    "bin": {
+        "maianne": "./bin/maiastatistics.maia"
+    },
+    "dependencies": {
+        "maiascript-cli": "^3.8.7"
+    },
+    "scripts": {
+        "build": "./build.sh",
+        "test": "./test.sh"
+    },
+    "directories": {
+        "example": "examples"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/souzamonteiro/maiastatistics.git"
+    }
+}
