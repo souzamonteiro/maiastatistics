@@ -290,28 +290,66 @@ namespace maiastatistics {
     ///
     function getPearson(data) {
         r = 0
-
         dimData = core.dim(data)
-        
         n = dimData[0]
-        avgDataX = matrix.avg(data,0,0,n - 1,0)
-        avgDataY = matrix.avg(data,0,1,n - 1,1)
-        
+        avgDataX = matrix.avg(data, 0, 0, n - 1, 0)
+        avgDataY = matrix.avg(data, 0, 1, n - 1, 1)
         avgX = avgDataX.avg
         devX = avgDataX.dev
         avgY = avgDataY.avg
         devY = avgDataY.dev
-        
         sumXY = 0
         for (i = 0; i &lt; n; i = i + 1) {
             sumXY = sumXY + data[i, 0] * data[i, 1]
         }
-
         r = (sumXY - n * avgX * avgY) / ((n - 1) * devX * devY)
-        
         return(r)
     }
-    
+
+    ///
+    /// Calculates the Cross Correlation.
+    /// @method getCrossCorrelation
+    /// @memberof maiastatistics
+    /// @param {object}   data - The time series.
+    /// @return {object}  Returns the variable lags or leads in series.
+    ///
+    function getCrossCorrelation(data) {
+        cc = 0
+        dimData = core.dim(data)
+        n = dimData[0]
+        avgDataX = matrix.avg(data, 0, 0, n - 1, 0)
+        avgDataY = matrix.avg(data, 0, 1, n - 1, 1)
+        avgX = avgDataX.avg
+        avgY = avgDataY.avg
+        sumX = 0
+        sumY = 0
+        for (i = 0; i &lt; n; i = i + 1) {
+            sumX = sumX + (data[i, 0] - avgX) ^ 2
+            sumY = sumY + (data[i, 1] - avgY) ^ 2
+        }
+        denom = math.sqrt(sumX * sumY)
+        delayMax = 2 * n
+
+        for (delay = -2 * n; delay &lt; delayMax; delay = delay + 1) {
+            sumXY = 0
+            for (i = 0; i &lt; n; i = i + 1) {
+                j = i + delay
+                if (j &lt; 0 || j >= n) {
+                    continue
+                } else {
+                    sumXY = sumXY + (data[i, 0] - avgX) * (data[i, 1] - avgY)
+                }
+                // if (j &lt; 0 || j >= n) {
+                //     sumXY = sumXY + (data[i, 0] - avgX) *  -avgY)
+                // } else {
+                //     sumXY = sumXY + (data[i, 0] - avgX) * (data[i, 1] - avgY)
+                // }
+            }
+            cc = sumXY / denom
+        }
+        return(cc)
+    }
+
     /// Starts the application and processes the data passed as command line arguments.
     /// @method run
     /// @memberof maiastatistics
@@ -344,8 +382,7 @@ namespace maiastatistics {
             reportFile = ""
             csvFile = ""
             linesToSkip = 0
-            separator = ","
-            
+            separator = ","            
             prefix = "sample"
             nFiles = 1
             indexFrom = 1
@@ -365,6 +402,7 @@ namespace maiastatistics {
             nextStep = false
             steps = 1
             calculatePearson = false
+            calculateCrossCorrelation = false
 
             // Get command line arguments.
             if (system.argc > 1) {
@@ -399,6 +437,7 @@ namespace maiastatistics {
                         system.log("       --nextstep           Creates a new series containing the next steps for each value of the given series.")
                         system.log("       --steps              Number of next steps.")
                         system.log("       --pearson            Calculates the Pearson coefficient.")
+                        system.log("       --crosscorrel        Calculates the Cross Correlation.")
                         process.exit(0)
                     } elseif (system.argv[i] == "-i") {
                         i = i + 1
@@ -468,7 +507,9 @@ namespace maiastatistics {
                         steps = core.toNumber(system.argv[i])
                     } elseif (system.argv[i] == "--pearson") {
                         calculatePearson = true
-                    } else {
+                    } elseif (system.argv[i] == "--crosscorrel") {
+                        calculateCrossCorrelation = true
+                    }else {
                         inputFile = system.argv[i]
                         break
                     }
@@ -629,7 +670,28 @@ namespace maiastatistics {
                     reportFileContents = reportFileContents + "Pearson coefficient: " + pearsonCoefficient + "\n"
                     
                     if (reportFile == "") {
-                        reportFile = fileName + "-report.txt"
+                        reportFile = fileName + "-report-pearson.txt"
+                    }
+
+                    fs.writeFileSync(reportFile, reportFileContents)
+                } elseif (calculateCrossCorrelation) {
+                    // Get the file without extension.
+                    fileName = inputFile.split(".")
+                    fileName = fileName.shift()
+
+                    // Get the file name extension.
+                    fileExtension = inputFile.split(".")
+                    fileExtension = fileExtension.pop()
+                    
+                    inputData = system.loadCSV(inputFile, linesToSkip, separator, true, true)
+                    crossCorrelation = this.getCrossCorrelation(inputData)
+                    
+                    // Saves the report file.
+                    reportFileContents = ""
+                    reportFileContents = reportFileContents + "Cross Correlation: " + crossCorrelation + "\n"
+                    
+                    if (reportFile == "") {
+                        reportFile = fileName + "-report-cc.txt"
                     }
 
                     fs.writeFileSync(reportFile, reportFileContents)
@@ -665,7 +727,7 @@ if (core.type(process) != "undefined") {
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.10</a> on Tue Jun 28 2022 15:53:01 GMT+0000 (Coordinated Universal Time)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.10</a> on Tue Jul 05 2022 13:16:29 GMT+0000 (Coordinated Universal Time)
 </footer>
 
 <script> prettyPrint(); </script>
