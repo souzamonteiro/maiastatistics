@@ -39,15 +39,11 @@ namespace maiastatistics {
     ///
     function getColumn(data, columnNumber) {
         newSeriesData = []
-
         for (i = 0; i < data.length; i = i + 1) {
             x = data[i, columnNumber]
-
             newSeriesData.push([x])
         }
-
-        return(newSeriesData)
-    }
+        return(newSeriesData)    }
 
     ///
     /// Replaces a given pattern in a time series.
@@ -63,12 +59,9 @@ namespace maiastatistics {
         if (core.type(asNumber) == "undefined") {
             asNumber = false
         }
-
         replacedData = []
-
         for (i = 0; i < data.length; i = i + 1) {
             x = data[i, 0]
-
             if (asNumber) {
                 if (x == pattern) {
                     replacedData.push([core.toNumber(replacementString)])
@@ -83,7 +76,6 @@ namespace maiastatistics {
                 }
             }
         }
-
         return(replacedData)
     }
 
@@ -98,22 +90,18 @@ namespace maiastatistics {
     function splitData(data, nFirst) {
         part1 = []
         part2 = []
-
         for (i = 0; i < data.length; i = i + 1) {
             x = data[i, 0]
-
             if (i < nFirst) {
                 part1.push([core.toNumber(x)])
             } else {
                 part2.push([core.toNumber(x)])
             }
         }
-
         returnObject = {
             "part1": part1,
             "part2": part2
         }
-
         return(returnObject)
     }
 
@@ -129,14 +117,11 @@ namespace maiastatistics {
         deviation = 0
         minimum = data[0, 0]
         maximum = data[0, 0]
-
         sx = 0
         sx2 = 0
-        n = data.length
-                    
+        n = data.length                    
         for (i = 0; i < data.length; i = i + 1) {
             x = data[i, 0]
-
             if (core.type(x) == "number") {
                 if (core.type(minimum) == "undefined") {
                     minimum = x
@@ -150,16 +135,13 @@ namespace maiastatistics {
                 if (maximum < x) {
                     maximum = x
                 }
-
                 sx = sx + x
                 sx2 = sx2 + x * x
             }
         }
-
         average = sx / n
         deviation = math.sqrt((sx2 - (sx * sx) / n) / (n - 1))
         error = deviation / math.sqrt(n)
-
         returnObject = {
             "average": average,
             "deviation": deviation,
@@ -168,7 +150,6 @@ namespace maiastatistics {
             "maximum": maximum,
             "n": n
         }
-
         return(returnObject)
     }
 
@@ -187,18 +168,14 @@ namespace maiastatistics {
             minimum = avgData.minimum
             maximum = avgData.maximum
         }
-
         normalizedData = []
-
         for (i = 0; i < data.length; i = i + 1) {
             x = data[i, 0]
-
             if (core.type(x) == "number") {
                 normalizedX = (x - minimum) / (maximum - minimum)
                 normalizedData.push([normalizedX])
             }
         }
-
         return(normalizedData)
     }
 
@@ -213,16 +190,13 @@ namespace maiastatistics {
     ///
     function denormalize(data, minimum, maximum) {
         denormalizedData = []
-
         for (i = 0; i < data.length; i = i + 1) {
             x = data[i, 0]
-
             if (core.type(x) == "number") {
                 denormalizedX = x * maximum - x * minimum + minimum
                 denormalizedData.push([denormalizedX])
             }
         }
-
         return(denormalizedData)
     }
 
@@ -236,7 +210,6 @@ namespace maiastatistics {
     ///
     function getNextSteps(data, steps) {
         nextStepData = []
-
         for (i = 0; i < data.length - steps; i = i + 1) {
             row = []
             for (j = i; j < i + steps; j = j + 1) {
@@ -249,7 +222,6 @@ namespace maiastatistics {
                 nextStepData.push(row)
             }
         }
-
         return(nextStepData)
     }
 
@@ -279,47 +251,71 @@ namespace maiastatistics {
     }
 
     ///
-    /// Calculates the Cross Correlation.
-    /// @method getCrossCorrelation
+    /// Calculates the Pearson coefficient.
+    /// References:
+    /// Weisstein, Eric W. "Least Squares Fitting".
+    /// From MathWorld--A Wolfram Web Resource.
+    /// http://mathworld.wolfram.com/LeastSquaresFitting.html 
+    /// @method getLsqr
     /// @memberof maiastatistics
     /// @param {object}   data - The time series.
-    /// @return {object}  Returns the variable lags or leads in series.
+    /// @param {number}   begin - The the first point of time series.
+    /// @param {number}   end - The the last point of time series.
+    /// @return {object}  Returns the average and the deviation of the time series.
     ///
-    function getCrossCorrelation(data) {
-        cc = 0
+    function getLsqr(data, begin, end) {
         dimData = core.dim(data)
-        n = dimData[0]
-        avgDataX = matrix.avg(data, 0, 0, n - 1, 0)
-        avgDataY = matrix.avg(data, 0, 1, n - 1, 1)
-        avgX = avgDataX.avg
-        avgY = avgDataY.avg
-        sumX = 0
-        sumY = 0
-        for (i = 0; i < n; i = i + 1) {
-            sumX = sumX + (data[i, 0] - avgX) ^ 2
-            sumY = sumY + (data[i, 1] - avgY) ^ 2
-        }
-        denom = math.sqrt(sumX * sumY)
-        delayMax = 2 * n
+        dimI = dimData[0]
+        dimJ = dimData[1]
 
-        for (delay = -2 * n; delay < delayMax; delay = delay + 1) {
-            sumXY = 0
-            for (i = 0; i < n; i = i + 1) {
-                j = i + delay
-                if (j < 0 || j >= n) {
-                    continue
-                } else {
-                    sumXY = sumXY + (data[i, 0] - avgX) * (data[i, 1] - avgY)
-                }
-                // if (j < 0 || j >= n) {
-                //     sumXY = sumXY + (data[i, 0] - avgX) *  -avgY)
-                // } else {
-                //     sumXY = sumXY + (data[i, 0] - avgX) * (data[i, 1] - avgY)
-                // }
-            }
-            cc = sumXY / denom
+        x = 0.0
+        y = 0.0
+        sx = 0.0
+        sy = 0.0
+        sxy = 0.0
+        sx2 = 0.0
+        sy2 = 0.0
+        n = 0
+        
+        if (core.type(begin) == "undefined") {
+            begin = 0
         }
-        return(cc)
+        if (core.type(end) == "undefined") {
+            end = dimI - 1
+        }
+        
+        # Read each value of the series and calculate
+        # a and b to f(a, b) = a + b * x.
+        for (i = begin; i <= end; i = i + 1) {
+            if (dimJ == 2) {
+                x = data[i, 0]
+                y = data[i, 1]
+            } else {
+                x = i
+                y = data[i, 0]
+            }
+            if (core.type(x) == "undefined") {
+                continue
+            }
+            if (core.type(y) == "undefined") {
+                continue
+            }
+            sx = sx + x
+            sy = sy + y
+            sxy = sxy + x * y
+            sx2 = sx2 + x * x
+            sy2 = sy2 + y * y
+            n = n + 1
+        }
+        
+        m1 = [n, sx; sx, sx2]
+        m2 = [sy; sxy]
+
+        ab = m1^-1 * m2
+        //ab = m2 / m1
+        r2 = ((sxy - sx * (sy / n)) ^ 2) / ((sx2 - (sx * sx) / n) * (sy2 - (sy * sy) / n))
+
+        return([ab[0, 0]; ab[1, 0]; r2])
     }
 
     /// Starts the application and processes the data passed as command line arguments.
@@ -328,26 +324,21 @@ namespace maiastatistics {
     function run() {
         // Supports only the Node.js interpreter.
         if (core.type(process) != "undefined") {
-            command = "node"
-            
+            command = "node"            
             fs = system.require("fs")
-
             realPath = fs.realpathSync(system.argv[0])
             filePath = realPath.split("/")
             filePath = core.slice(filePath, 0, filePath.length - 2)
             filePath = filePath.join("/")
             this.scriptPath = filePath
             this.cnaLibrary = this.scriptPath + "/maia/cna/cna.maia"
-            system.source(this.cnaLibrary)
-            
+            system.source(this.cnaLibrary)            
             readTextFile = fs.readFileSync
-
             // Read file callback.
             function readFile(input) {
                 content = readTextFile(input, "utf-8")
                 return(content)
-            }
-            
+            }            
             // Command line options.
             inputFile = ""
             outputFile = ""
@@ -374,8 +365,8 @@ namespace maiastatistics {
             nextStep = false
             steps = 1
             calculatePearson = false
-            calculateCrossCorrelation = false
-
+            doLSQR = false
+            calculateDFA = false
             // Get command line arguments.
             if (system.argc > 1) {
                 i = 1
@@ -409,7 +400,7 @@ namespace maiastatistics {
                         system.log("       --nextstep           Creates a new series containing the next steps for each value of the given series.")
                         system.log("       --steps              Number of next steps.")
                         system.log("       --pearson            Calculates the Pearson coefficient.")
-                        system.log("       --crosscorrel        Calculates the Cross Correlation.")
+                        system.log("       --dfa                Calculates the DFA.")
                         process.exit(0)
                     } elseif (system.argv[i] == "-i") {
                         i = i + 1
@@ -479,95 +470,74 @@ namespace maiastatistics {
                         steps = core.toNumber(system.argv[i])
                     } elseif (system.argv[i] == "--pearson") {
                         calculatePearson = true
-                    } elseif (system.argv[i] == "--crosscorrel") {
-                        calculateCrossCorrelation = true
+                    } elseif (system.argv[i] == "--dfa") {
+                        calculateDFA = true
+                    } elseif (system.argv[i] == "--lsqr") {
+                        doLSQR = true
                     }else {
                         inputFile = system.argv[i]
                         break
                     }
                     i = i + 1
                 }
-
                 if (separateColumn) {
                     // Get the file without extension.
                     fileName = inputFile.split(".")
                     fileName = fileName.shift()
-
                     // Get the file name extension.
                     fileExtension = inputFile.split(".")
-                    fileExtension = fileExtension.pop()
-                    
+                    fileExtension = fileExtension.pop()                    
                     if (outputFile == "") {
                         outputFile = fileName + "-column-" + core.toString(columnNumber) + "." + fileExtension
                     }
-
                     inputData = system.loadCSV(inputFile, linesToSkip, separator, true, true)
                     outputData = this.getColumn(inputData, columnNumber)
-
                     fileContents = system.createCSV(outputData, separator)
-
                     fs.writeFileSync(outputFile, fileContents)
                 } elseif (replaceGivenPattern) {
                     // Get the file without extension.
                     fileName = inputFile.split(".")
                     fileName = fileName.shift()
-
                     // Get the file name extension.
                     fileExtension = inputFile.split(".")
-                    fileExtension = fileExtension.pop()
-                    
+                    fileExtension = fileExtension.pop()                    
                     if (outputFile == "") {
                         outputFile = fileName + "-replaced." + fileExtension
                     }
-
                     inputData = system.loadCSV(inputFile, linesToSkip, separator, true, false)
                     outputData = this.replacePattern(inputData, patternString, replacementString, true)
-
-                    fileContents = system.createCSV(outputData, separator)
-                    
+                    fileContents = system.createCSV(outputData, separator)                    
                     fs.writeFileSync(outputFile, fileContents)
                 } elseif (splitFile) {
                     // Get the file without extension.
                     fileName = inputFile.split(".")
                     fileName = fileName.shift()
-
                     // Get the file name extension.
                     fileExtension = inputFile.split(".")
-                    fileExtension = fileExtension.pop()
-                    
-                    
+                    fileExtension = fileExtension.pop()                      
                     inputData = system.loadCSV(inputFile, linesToSkip, separator, true, false)
                     outputData = this.splitData(inputData, nFirst)
-
                     outputFile1 = fileName + "-" + core.toString(outputData.part1.length) + "." + fileExtension
                     outputFile2 = fileName + "-" + core.toString(outputData.part2.length) + "." + fileExtension
-
                     fileContents1 = system.createCSV(outputData.part1, separator)
-                    fileContents2 = system.createCSV(outputData.part2, separator)
-                    
+                    fileContents2 = system.createCSV(outputData.part2, separator)                    
                     fs.writeFileSync(outputFile1, fileContents1)
                     fs.writeFileSync(outputFile2, fileContents2)
                 } elseif (normalizeData) {
                     // Get the file without extension.
                     fileName = inputFile.split(".")
                     fileName = fileName.shift()
-
                     // Get the file name extension.
                     fileExtension = inputFile.split(".")
-                    fileExtension = fileExtension.pop()
-                    
+                    fileExtension = fileExtension.pop()                    
                     if (outputFile == "") {
                         outputFile = fileName + "-normalized." + fileExtension
                     }
-
                     inputData = system.loadCSV(inputFile, linesToSkip, separator, true, true)
                     avgData = this.getAverage(inputData)
                     outputData = this.normalize(inputData, avgData.minimum, avgData.maximum)
-
-                    fileContents = system.createCSV(outputData, separator)
-                    
+                    fileContents = system.createCSV(outputData, separator)                    
                     fs.writeFileSync(outputFile, fileContents)
-
                     // Saves the report file.
                     reportFileContents = ""
                     reportFileContents = reportFileContents + "Average: " + core.toString(avgData.average) + "\n"
@@ -576,96 +546,91 @@ namespace maiastatistics {
                     reportFileContents = reportFileContents + "Minimum value: "  + core.toString(avgData.minimum) + "\n"
                     reportFileContents = reportFileContents + "Maximum value: "  + core.toString(avgData.maximum) + "\n"
                     reportFileContents = reportFileContents + "Observations: "  + core.toString(avgData.n) + "\n"
-                    
                     if (reportFile == "") {
                         reportFile = fileName + "-report.txt"
                     }
-
                     fs.writeFileSync(reportFile, reportFileContents)
                 } elseif (denormalizeData) {
                     if ((core.type(minimum) != "number") || (core.type(maximum) != "number")) {
                         system.log("To denormalize a time series you need to provide the minimum and maximum values of the original, denormalized series.")
                         process.exit()
                     }
-
                     // Get the file without extension.
                     fileName = inputFile.split(".")
                     fileName = fileName.shift()
-
                     // Get the file name extension.
                     fileExtension = inputFile.split(".")
-                    fileExtension = fileExtension.pop()
-                    
+                    fileExtension = fileExtension.pop()                    
                     if (outputFile == "") {
                         outputFile = fileName + "-denormalized." + fileExtension
                     }
-
                     inputData = system.loadCSV(inputFile, linesToSkip, separator, true, true)
                     outputData = this.denormalize(inputData, minimum, maximum)
-
                     fileContents = system.createCSV(outputData, separator)
-
                     fs.writeFileSync(outputFile, fileContents)
                 } elseif (nextStep) {
                     // Get the file without extension.
                     fileName = inputFile.split(".")
                     fileName = fileName.shift()
-
                     // Get the file name extension.
                     fileExtension = inputFile.split(".")
-                    fileExtension = fileExtension.pop()
-                    
+                    fileExtension = fileExtension.pop()                    
                     if (outputFile == "") {
                         outputFile = fileName + "-steps." + fileExtension
                     }
-
                     inputData = system.loadCSV(inputFile, linesToSkip, separator, true, true)
                     outputData = this.getNextSteps(inputData, steps)
-
                     fileContents = system.createCSV(outputData, separator)
-
                     fs.writeFileSync(outputFile, fileContents)
                 } elseif (calculatePearson) {
                     // Get the file without extension.
                     fileName = inputFile.split(".")
                     fileName = fileName.shift()
-
                     // Get the file name extension.
                     fileExtension = inputFile.split(".")
-                    fileExtension = fileExtension.pop()
-                    
+                    fileExtension = fileExtension.pop()                    
                     inputData = system.loadCSV(inputFile, linesToSkip, separator, true, true)
-                    pearsonCoefficient = this.getPearson(inputData)
-                    
+                    pearsonCoefficient = this.getPearson(inputData)                    
                     // Saves the report file.
                     reportFileContents = ""
-                    reportFileContents = reportFileContents + "Pearson coefficient: " + pearsonCoefficient + "\n"
-                    
+                    reportFileContents = reportFileContents + "Pearson coefficient: " + pearsonCoefficient + "\n"                    
                     if (reportFile == "") {
                         reportFile = fileName + "-report-pearson.txt"
                     }
-
                     fs.writeFileSync(reportFile, reportFileContents)
-                } elseif (calculateCrossCorrelation) {
+                } elseif (doLSQR) {
                     // Get the file without extension.
                     fileName = inputFile.split(".")
                     fileName = fileName.shift()
-
                     // Get the file name extension.
                     fileExtension = inputFile.split(".")
-                    fileExtension = fileExtension.pop()
-                    
+                    fileExtension = fileExtension.pop()                    
                     inputData = system.loadCSV(inputFile, linesToSkip, separator, true, true)
-                    crossCorrelation = this.getCrossCorrelation(inputData)
-                    
+                    lsqr = this.getLsqr(inputData)
                     // Saves the report file.
                     reportFileContents = ""
-                    reportFileContents = reportFileContents + "Cross Correlation: " + crossCorrelation + "\n"
-                    
+                    reportFileContents = reportFileContents + "a: " + lsqr[0, 0] + "\n"                    
+                    reportFileContents = reportFileContents + "b: " + lsqr[1, 0] + "\n"                    
+                    reportFileContents = reportFileContents + "r2: " + lsqr[2, 0] + "\n"                    
+                    if (reportFile == "") {
+                        reportFile = fileName + "-report-lsqr.txt"
+                    }
+                    fs.writeFileSync(reportFile, reportFileContents)
+                } elseif (calculateDFA) {
+                    // Get the file without extension.
+                    fileName = inputFile.split(".")
+                    fileName = fileName.shift()
+                    // Get the file name extension.
+                    fileExtension = inputFile.split(".")
+                    fileExtension = fileExtension.pop()                    
+                    inputData = system.loadCSV(inputFile, linesToSkip, separator, true, true)
+                    crossCorrelation = this.getCrossCorrelation(inputData)                    
+                    // Saves the report file.
+                    reportFileContents = ""
+                    reportFileContents = reportFileContents + "Cross Correlation: " + crossCorrelation + "\n"                    
                     if (reportFile == "") {
                         reportFile = fileName + "-report-cc.txt"
                     }
-
                     fs.writeFileSync(reportFile, reportFileContents)
                 } else {
                     system.log(maiastatistics.appTitle + " Command Line Interface (CLI)")
@@ -678,7 +643,6 @@ namespace maiastatistics {
         }
     }
 }
-
 // Run the MaiaApp code if this script has been invoked
 // from the command line.
 if (core.type(process) != "undefined") {

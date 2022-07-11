@@ -1,0 +1,76 @@
+ ///
+    /// Calculates the Cross Correlation.
+    /// @method getCrossCorrelation
+    /// @memberof maiastatistics
+    /// @param {object}   data - The time series.
+    /// @return {object}  Returns the variable lags or leads in series.
+    ///
+    function getCrossCorrelationOld(data) {
+        cc = 0
+        dimData = core.dim(data)
+        n = dimData[0]
+        avgDevX = matrix.avg(data, 0, 0, n - 1, 0)
+        avgDevY = matrix.avg(data, 0, 1, n - 1, 1)
+        avgX = avgDevX.avg
+        avgY = avgDevY.avg
+        delayMax = 2 * n
+        for (delay = -2 * n; delay < delayMax; delay = delay + 1) {            
+            //cc = 0
+            sumXY = 0
+            multX = 0
+            multY = 0
+            for (i = 0; i < n; i = i + 1) {
+                j = i + delay                             
+                if (j < 0 || j >= n) {
+                    continue
+                } else {
+                    sumXY = sumXY + (data[i, 0] - avgX) * (data[i, 1] - avgY)
+                    multX = (data[i, 0] - avgX) ^ 2
+                    multY = (data[i, 1] - avgY) ^ 2                      
+                }                
+            }
+            cc = sumXY / math.sqrt(multX * multY)
+            system.log("cc = " + cc)
+            system.log("sumXY = " + sumXY)
+            system.log("multX = " + multX)
+            system.log("multY = " + multY)
+            system.log("sqrt = " + math.sqrt(multX * multY))
+        }
+        return(cc)
+    }
+
+    function getCrossCorrelation(data) {
+        cc = 0
+        dimData = core.dim(data)
+        n = dimData[0]
+        avgDataX = matrix.avg(data, 0, 0, n - 1, 0)
+        avgDataY = matrix.avg(data, 0, 1, n - 1, 1)
+        avgX = avgDataX.avg
+        avgY = avgDataY.avg
+        sumX = 0
+        sumY = 0
+        for (i = 0; i < n; i = i + 1) {
+            sumX = sumX + (data[i, 0] - avgX) ^ 2
+            sumY = sumY + (data[i, 1] - avgY) ^ 2
+        }
+        denom = math.sqrt(sumX * sumY)
+        delayMax = 2 * n
+        for (delay = -2 * n; delay < delayMax; delay = delay + 1) {
+            sumXY = 0
+            for (i = 0; i < n; i = i + 1) {
+                j = i + delay
+                if (j < 0 || j >= n) {
+                    continue
+                } else {
+                    sumXY = sumXY + (data[i, 0] - avgX) * (data[i, 1] - avgY)
+                }
+                // if (j < 0 || j >= n) {
+                //     sumXY = sumXY + (data[i, 0] - avgX) *  -avgY)
+                // } else {
+                //     sumXY = sumXY + (data[i, 0] - avgX) * (data[i, 1] - avgY)
+                // }
+            }
+            cc = sumXY / denom
+        }
+        return(cc)
+    }
