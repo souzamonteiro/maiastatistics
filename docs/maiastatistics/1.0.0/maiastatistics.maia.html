@@ -258,7 +258,7 @@ namespace maiastatistics {
     /// @method getPearson
     /// @memberof maiastatistics
     /// @param {object}   data - The time series.
-    /// @return {object}  Returns the average and the deviation of the time series.
+    /// @return {object}  Returns the Pearson coefficient.
     ///
     function getPearson(data) {
         r = 0
@@ -279,7 +279,7 @@ namespace maiastatistics {
     }
 
     ///
-    /// Calculates the Pearson coefficient.
+    /// Obtains the best curve that approximates a set of points, using the least squares method.
     /// References:
     /// Weisstein, Eric W. "Least Squares Fitting".
     /// From MathWorld--A Wolfram Web Resource.
@@ -289,7 +289,7 @@ namespace maiastatistics {
     /// @param {object}   data - The time series.
     /// @param {number}   begin - The the first point of time series.
     /// @param {number}   end - The the last point of time series.
-    /// @return {object}  Returns the average and the deviation of the time series.
+    /// @return {object}  Returns the best curve that approximates a set of points.
     ///
     function getLsqr(data, begin, end) {
         dimData = core.dim(data)
@@ -312,7 +312,7 @@ namespace maiastatistics {
             end = dimI - 1
         }
         
-        # Read each value of the series and calculate
+        # Read each value of the series and calculates
         # a and b to f(a, b) = a + b * x.
         for (i = begin; i &lt;= end; i = i + 1) {
             if (dimJ == 2) {
@@ -339,11 +339,100 @@ namespace maiastatistics {
         m1 = [n, sx; sx, sx2]
         m2 = [sy; sxy]
 
-        ab = m1^-1 * m2
-        //ab = m2 / m1
+        //ab = m1^-1 * m2
+        ab = m2 / m1
         r2 = ((sxy - sx * (sy / n)) ^ 2) / ((sx2 - (sx * sx) / n) * (sy2 - (sy * sy) / n))
 
         return([ab[0, 0]; ab[1, 0]; r2])
+    }
+
+    ///
+    /// Performs a cumulative sum of the values in the series.
+    /// @method getCumulativeSum
+    /// @memberof maiastatistics
+    /// @param {object}   data - The time series.
+    /// @return {object}  Returns the cumulative sum of the values in the series.
+    ///
+    function getCumulativeSum(data) {
+        n = core.length(data)
+        
+        y = core.matrix(0, n)
+        
+        s = 0.0
+        
+        avgData = matrix.avg(data)
+        
+        for (i = 0; i &lt;= n; i = i + 1) {
+            s = s + (data[i] - avgData)
+            
+            y[i] = s
+        }
+        
+        return(y)
+    }
+
+    ///
+    /// Calculates the mean square fluctuation.
+    /// @method getCumulativeSum
+    /// @memberof maiastatistics
+    /// @param {object}   data - The time series.
+    /// @param {object}   size - The box size.
+    /// @return {object}  Returns the mean square fluctuation.
+    ///
+    function getMeanSquaredFluctuation(data, size) {
+        l = core.length(data)
+        nboxes = l / size
+        
+        f = core.matrix(0, nboxes + 1)
+        
+        for (n = 1; n &lt;= nboxes; n = n + 1) {
+            begin = (n - 1) * size + 1
+            end = begin + size - 1
+            
+            res = this.lsqr(data, begin, end)
+                    
+            a = res[0]
+            b = res[1]
+            
+            s = 0.0
+            
+            for (k = begin; k &lt;= end; k = k + 1) {
+                yk = data[k]
+                ypk = (a + b * k)
+                
+                s = s + (yk - ypk) ^ 2
+            }
+            
+            f[n] =  s / size
+        }
+        
+        return(f)
+    }
+
+    ///
+    /// Calculates the detrended fluctuation analysis (DFA) of a time series.
+    /// @method getDFA
+    /// @memberof maiastatistics
+    /// @param {object}   data - The time series.
+    /// @param {object}   size - The box size.
+    /// @return {object}  Returns the detrended fluctuation analysis (DFA) of a time series.
+    ///
+    function getDFA(data, size) {
+        l = core.length(data)
+        
+        mDFA = core.matrix(0, l)
+        
+        # Do the cumulative sum of the series.
+        cSum = this.getCumulativeSum(data)
+        
+        foreach (size; index; scale) {
+            rMSF= this.getMeanSquaredFluctuation(cSum, scale)
+            n = length(rMSF)
+            
+            mDFA[index] = math.sqrt(matrix.avg(rMSF))
+        }
+        
+        return(mdfa)
     }
 
     /// Starts the application and processes the data passed as command line arguments.
@@ -395,6 +484,8 @@ namespace maiastatistics {
             calculatePearson = false
             doLSQR = false
             calculateDFA = false
+            bSize = 50
+            sizeIncrement = 10
             // Get command line arguments.
             if (system.argc > 1) {
                 i = 1
@@ -428,7 +519,10 @@ namespace maiastatistics {
                         system.log("       --nextstep           Creates a new series containing the next steps for each value of the given series.")
                         system.log("       --steps              Number of next steps.")
                         system.log("       --pearson            Calculates the Pearson coefficient.")
+                        system.log("       --lsqr               Calculates the best curve that approximates a set of points, using the least squares method.")
                         system.log("       --dfa                Calculates the DFA.")
+                        system.log("       --bsize              Box size to calculates the DFA.")
+                        system.log("       --sincr              Box size increment to calculates the DFA.")
                         process.exit(0)
                     } elseif (system.argv[i] == "-i") {
                         i = i + 1
@@ -498,11 +592,17 @@ namespace maiastatistics {
                         steps = core.toNumber(system.argv[i])
                     } elseif (system.argv[i] == "--pearson") {
                         calculatePearson = true
-                    } elseif (system.argv[i] == "--dfa") {
-                        calculateDFA = true
                     } elseif (system.argv[i] == "--lsqr") {
                         doLSQR = true
-                    }else {
+                    } elseif (system.argv[i] == "--dfa") {
+                        calculateDFA = true
+                    } elseif (system.argv[i] == "--bsize") {
+                        i = i + 1
+                        bSize = core.toNumber(system.argv[i])
+                    } elseif (system.argv[i] == "--sincr") {
+                        i = i + 1
+                        sizeIncrement = core.toNumber(system.argv[i])
+                    } else {
                         inputFile = system.argv[i]
                         break
                     }
@@ -652,7 +752,7 @@ namespace maiastatistics {
                     fileExtension = inputFile.split(".")
                     fileExtension = fileExtension.pop()                    
                     inputData = system.loadCSV(inputFile, linesToSkip, separator, true, true)
-                    crossCorrelation = this.getCrossCorrelation(inputData)                    
+                    dfa = this.getDFA(inputData, bsize)                    
                     // Saves the report file.
                     reportFileContents = ""
                     reportFileContents = reportFileContents + "Cross Correlation: " + crossCorrelation + "\n"                    
@@ -691,7 +791,7 @@ if (core.type(process) != "undefined") {
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.10</a> on Mon Jul 11 2022 15:18:45 GMT+0000 (Coordinated Universal Time)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.10</a> on Tue Jul 12 2022 20:51:49 GMT+0000 (Coordinated Universal Time)
 </footer>
 
 <script> prettyPrint(); </script>

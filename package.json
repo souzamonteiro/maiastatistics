@@ -19,7 +19,7 @@
         "maianne": "./bin/maiastatistics.maia"
     },
     "dependencies": {
-        "maiascript-cli": "^3.8.7"
+        "maiascript-cli": "^3.8.9"
     },
     "scripts": {
         "build": "./build.sh",
