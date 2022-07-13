@@ -119,7 +119,7 @@ namespace maiastatistics {
         maximum = data[0, 0]
         sx = 0
         sx2 = 0
-        n = data.length                    
+        n = data.length
         for (i = 0; i < data.length; i = i + 1) {
             x = data[i, 0]
             if (core.type(x) == "number") {
@@ -362,7 +362,7 @@ namespace maiastatistics {
             end = begin + size - 1
             
             res = this.lsqr(data, begin, end)
-                    
+
             a = res[0]
             b = res[1]
             
@@ -586,7 +586,7 @@ namespace maiastatistics {
                     fileName = fileName.shift()
                     // Get the file name extension.
                     fileExtension = inputFile.split(".")
-                    fileExtension = fileExtension.pop()                    
+                    fileExtension = fileExtension.pop()
                     if (outputFile == "") {
                         outputFile = fileName + "-column-" + core.toString(columnNumber) + "." + fileExtension
                     }
@@ -600,13 +600,13 @@ namespace maiastatistics {
                     fileName = fileName.shift()
                     // Get the file name extension.
                     fileExtension = inputFile.split(".")
-                    fileExtension = fileExtension.pop()                    
+                    fileExtension = fileExtension.pop()
                     if (outputFile == "") {
                         outputFile = fileName + "-replaced." + fileExtension
                     }
                     inputData = system.loadCSV(inputFile, linesToSkip, separator, true, false)
                     outputData = this.replacePattern(inputData, patternString, replacementString, true)
-                    fileContents = system.createCSV(outputData, separator)                    
+                    fileContents = system.createCSV(outputData, separator)
                     fs.writeFileSync(outputFile, fileContents)
                 } elseif (splitFile) {
                     // Get the file without extension.
@@ -614,13 +614,13 @@ namespace maiastatistics {
                     fileName = fileName.shift()
                     // Get the file name extension.
                     fileExtension = inputFile.split(".")
-                    fileExtension = fileExtension.pop()                      
+                    fileExtension = fileExtension.pop()
                     inputData = system.loadCSV(inputFile, linesToSkip, separator, true, false)
                     outputData = this.splitData(inputData, nFirst)
                     outputFile1 = fileName + "-" + core.toString(outputData.part1.length) + "." + fileExtension
                     outputFile2 = fileName + "-" + core.toString(outputData.part2.length) + "." + fileExtension
                     fileContents1 = system.createCSV(outputData.part1, separator)
-                    fileContents2 = system.createCSV(outputData.part2, separator)                    
+                    fileContents2 = system.createCSV(outputData.part2, separator)
                     fs.writeFileSync(outputFile1, fileContents1)
                     fs.writeFileSync(outputFile2, fileContents2)
                 } elseif (normalizeData) {
@@ -629,14 +629,14 @@ namespace maiastatistics {
                     fileName = fileName.shift()
                     // Get the file name extension.
                     fileExtension = inputFile.split(".")
-                    fileExtension = fileExtension.pop()                    
+                    fileExtension = fileExtension.pop()
                     if (outputFile == "") {
                         outputFile = fileName + "-normalized." + fileExtension
                     }
                     inputData = system.loadCSV(inputFile, linesToSkip, separator, true, true)
                     avgData = this.getAverage(inputData)
                     outputData = this.normalize(inputData, avgData.minimum, avgData.maximum)
-                    fileContents = system.createCSV(outputData, separator)                    
+                    fileContents = system.createCSV(outputData, separator)
                     fs.writeFileSync(outputFile, fileContents)
                     // Saves the report file.
                     reportFileContents = ""
@@ -660,7 +660,7 @@ namespace maiastatistics {
                     fileName = fileName.shift()
                     // Get the file name extension.
                     fileExtension = inputFile.split(".")
-                    fileExtension = fileExtension.pop()                    
+                    fileExtension = fileExtension.pop()
                     if (outputFile == "") {
                         outputFile = fileName + "-denormalized." + fileExtension
                     }
@@ -674,7 +674,7 @@ namespace maiastatistics {
                     fileName = fileName.shift()
                     // Get the file name extension.
                     fileExtension = inputFile.split(".")
-                    fileExtension = fileExtension.pop()                    
+                    fileExtension = fileExtension.pop()
                     if (outputFile == "") {
                         outputFile = fileName + "-steps." + fileExtension
                     }
@@ -688,12 +688,12 @@ namespace maiastatistics {
                     fileName = fileName.shift()
                     // Get the file name extension.
                     fileExtension = inputFile.split(".")
-                    fileExtension = fileExtension.pop()                    
+                    fileExtension = fileExtension.pop()
                     inputData = system.loadCSV(inputFile, linesToSkip, separator, true, true)
-                    pearsonCoefficient = this.getPearson(inputData)                    
+                    pearsonCoefficient = this.getPearson(inputData)
                     // Saves the report file.
                     reportFileContents = ""
-                    reportFileContents = reportFileContents + "Pearson coefficient: " + pearsonCoefficient + "\n"                    
+                    reportFileContents = reportFileContents + "Pearson coefficient: " + pearsonCoefficient + "\n"
                     if (reportFile == "") {
                         reportFile = fileName + "-report-pearson.txt"
                     }
@@ -704,14 +704,15 @@ namespace maiastatistics {
                     fileName = fileName.shift()
                     // Get the file name extension.
                     fileExtension = inputFile.split(".")
-                    fileExtension = fileExtension.pop()                    
+                    fileExtension = fileExtension.pop()
                     inputData = system.loadCSV(inputFile, linesToSkip, separator, true, true)
                     lsqr = this.getLsqr(inputData)
                     // Saves the report file.
                     reportFileContents = ""
-                    reportFileContents = reportFileContents + "a: " + lsqr[0, 0] + "\n"                    
-                    reportFileContents = reportFileContents + "b: " + lsqr[1, 0] + "\n"                    
-                    reportFileContents = reportFileContents + "r2: " + lsqr[2, 0] + "\n"                    
+                    reportFileContents = reportFileContents + "y = a + b * x\n"
+                    reportFileContents = reportFileContents + "a: " + lsqr[0, 0] + "\n"
+                    reportFileContents = reportFileContents + "b: " + lsqr[1, 0] + "\n"
+                    reportFileContents = reportFileContents + "r2: " + lsqr[2, 0] + "\n"
                     if (reportFile == "") {
                         reportFile = fileName + "-report-lsqr.txt"
                     }
@@ -722,16 +723,32 @@ namespace maiastatistics {
                     fileName = fileName.shift()
                     // Get the file name extension.
                     fileExtension = inputFile.split(".")
-                    fileExtension = fileExtension.pop()                    
+                    fileExtension = fileExtension.pop()
                     inputData = system.loadCSV(inputFile, linesToSkip, separator, true, true)
-                    dfa = this.getDFA(inputData, bsize)                    
+                    # Create the scale matrix.
+                    lenData = core.length(inputData)
+                    maxSize = lenData / 2
+                    j = 0
+                    s = bSize
+                    size = []
+                    while (s < maxSize) {
+                        size[j] = s
+                        j = j + 1
+                        s = s + sizeIncrement
+                    }
+                    dfa = this.getDFA(inputData, size)
+                    lsqr = this.getLsqr(dfa)
                     // Saves the report file.
                     reportFileContents = ""
-                    reportFileContents = reportFileContents + "Cross Correlation: " + crossCorrelation + "\n"                    
+                    reportFileContents = reportFileContents + "DFA: " + lsqr[1, 0] + "\n"
                     if (reportFile == "") {
-                        reportFile = fileName + "-report-cc.txt"
+                        reportFile = fileName + "-report-dfa.txt"
                     }
-                    fs.writeFileSync(reportFile, reportFileContents)
+                    if (outputFile == "") {
+                        outputFile = fileName + "-dfa." + fileExtension
+                    }
+                    fileContents = system.createCSV(dfa, separator)
+                    fs.writeFileSync(outputFile, fileContents)
                 } else {
                     system.log(maiastatistics.appTitle + " Command Line Interface (CLI)")
                     system.log("Usage: " + maiastatistics.appName + " [options] [input file] [--] [arguments]")
