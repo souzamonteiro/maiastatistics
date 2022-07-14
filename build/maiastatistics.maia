@@ -332,10 +332,11 @@ namespace maiastatistics {
         
         s = 0.0
         
-        avgData = matrix.avg(data)
+        avgData = this.getAverage(data)
         
         for (i = 0; i <= n; i = i + 1) {
-            s = s + (data[i] - avgData)
+            system.log(data[i])
+            s = s + (data[i] - avgData.average)
             
             y[i] = s
         }
@@ -386,22 +387,27 @@ namespace maiastatistics {
     /// @method getDFA
     /// @memberof maiastatistics
     /// @param {object}   data - The time series.
-    /// @param {object}   size - The box size.
+    /// @param {object}   sizes - The box sizes array.
     /// @return {object}  Returns the detrended fluctuation analysis (DFA) of a time series.
     ///
-    function getDFA(data, size) {
+    function getDFA(data, sizes) {
         l = core.length(data)
         
         mDFA = core.matrix(0, l)
         
         # Do the cumulative sum of the series.
+        system.println("Passou 1")
         cSum = this.getCumulativeSum(data)
+        system.println("Passou 2")
         
-        foreach (size; index; scale) {
-            rMSF= this.getMeanSquaredFluctuation(cSum, scale)
+        foreach (sizes; index; size) {
+            rMSF= this.getMeanSquaredFluctuation(cSum, size)
+            system.println("Passou 3")
             n = length(rMSF)
             
-            mDFA[index] = math.sqrt(matrix.avg(rMSF))
+            avgData = this.getAverage(rMSF)
+            system.println("Passou 4")
+            mDFA[index] = math.sqrt(avgData.average)
         }
         
         return(mdfa)
@@ -725,18 +731,20 @@ namespace maiastatistics {
                     fileExtension = inputFile.split(".")
                     fileExtension = fileExtension.pop()
                     inputData = system.loadCSV(inputFile, linesToSkip, separator, true, true)
+                    system.println("Passou 0")
                     # Create the scale matrix.
                     lenData = core.length(inputData)
                     maxSize = lenData / 2
                     j = 0
                     s = bSize
-                    size = []
+                    sizes = []
                     while (s < maxSize) {
-                        size[j] = s
+                        sizes[j] = s
                         j = j + 1
                         s = s + sizeIncrement
                     }
-                    dfa = this.getDFA(inputData, size)
+                    system.println("Passou 0.1")
+                    dfa = this.getDFA(inputData, sizes)
                     lsqr = this.getLsqr(dfa)
                     // Saves the report file.
                     reportFileContents = ""

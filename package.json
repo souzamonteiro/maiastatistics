@@ -19,6 +19,10 @@
         "maianne": "./bin/maiastatistics.maia"
     },
     "dependencies": {
+        "cross-blob": "^2.0.0",
+        "glob": "^7.1.6",
+        "jsdoc": "^3.6.5",
+        "jsdom": "^16.2.2",
         "maiascript-cli": "^3.8.9"
     },
     "scripts": {

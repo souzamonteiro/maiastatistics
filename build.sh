@@ -4,7 +4,6 @@ rm -rf build/*
 rm -rf docs/*
 
 cp src/maiastatistics.maia build/
-
 cp build/maiastatistics.maia bin/
 
 chmod 755 bin/*
