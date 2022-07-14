@@ -283,9 +283,8 @@ namespace maiastatistics {
         if (core.type(end) == "undefined") {
             end = dimI - 1
         }
-        
-        # Read each value of the series and calculates
-        # a and b to f(a, b) = a + b * x.
+        // Read each value of the series and calculates
+        // a and b to f(a, b) = a + b * x.
         for (i = begin; i <= end; i = i + 1) {
             if (dimJ == 2) {
                 x = data[i, 0]
@@ -308,6 +307,10 @@ namespace maiastatistics {
             n = n + 1
         }
         
+        if (n == 0) {
+            return([0; 0; 0])
+        }
+
         m1 = [n, sx; sx, sx2]
         m2 = [sy; sxy]
 
@@ -335,12 +338,13 @@ namespace maiastatistics {
         avgData = this.getAverage(data)
         
         for (i = 0; i <= n; i = i + 1) {
-            system.log(data[i])
-            s = s + (data[i] - avgData.average)
+            if (core.type(data[i]) == "undefined") {
+                continue
+            }
+            s = s + (data[i, 0] - avgData.average)
             
             y[i] = s
         }
-        
         return(y)
     }
 
@@ -362,7 +366,7 @@ namespace maiastatistics {
             begin = (n - 1) * size + 1
             end = begin + size - 1
             
-            res = this.lsqr(data, begin, end)
+            res = this.getLsqr(data, begin, end)
 
             a = res[0]
             b = res[1]
@@ -395,18 +399,14 @@ namespace maiastatistics {
         
         mDFA = core.matrix(0, l)
         
-        # Do the cumulative sum of the series.
-        system.println("Passou 1")
+        // Do the cumulative sum of the series.
         cSum = this.getCumulativeSum(data)
-        system.println("Passou 2")
         
         foreach (sizes; index; size) {
             rMSF= this.getMeanSquaredFluctuation(cSum, size)
-            system.println("Passou 3")
             n = length(rMSF)
             
             avgData = this.getAverage(rMSF)
-            system.println("Passou 4")
             mDFA[index] = math.sqrt(avgData.average)
         }
         
@@ -731,8 +731,7 @@ namespace maiastatistics {
                     fileExtension = inputFile.split(".")
                     fileExtension = fileExtension.pop()
                     inputData = system.loadCSV(inputFile, linesToSkip, separator, true, true)
-                    system.println("Passou 0")
-                    # Create the scale matrix.
+                    // Create the scale matrix.
                     lenData = core.length(inputData)
                     maxSize = lenData / 2
                     j = 0
@@ -743,7 +742,6 @@ namespace maiastatistics {
                         j = j + 1
                         s = s + sizeIncrement
                     }
-                    system.println("Passou 0.1")
                     dfa = this.getDFA(inputData, sizes)
                     lsqr = this.getLsqr(dfa)
                     // Saves the report file.
