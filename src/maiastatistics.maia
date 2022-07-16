@@ -121,7 +121,11 @@ namespace maiastatistics {
         sx2 = 0
         n = data.length
         for (i = 0; i < data.length; i = i + 1) {
-            x = data[i, 0]
+            if (core.type(data[i]) == "number") {
+                x = data[i]
+            } else {
+                x = data[i, 0]
+            }
             if (core.type(x) == "number") {
                 if (core.type(minimum) == "undefined") {
                     minimum = x

@@ -36,7 +36,7 @@ namespace dfa {
     local x = []
 
     ///
-    /// This function allocates workspace for getDfa() and getPolyfit(), and sets x[i][j] = i^(j-1), in preparation for polyfit().
+    /// This function allocates workspace for getDfa() and getPolyfit(), and sets x[i,j] = i^(j-1), in preparation for polyfit().
     /// @method init
     /// @memberof dfa
     function init() {
@@ -59,6 +59,263 @@ namespace dfa {
     }
 
     init()
+
+    ///
+    /// Allocates and fills rs[], the array of box sizes used by getDfa() below.
+    /// The box sizes range from (exactly) minbox to (approximately) maxbox,
+    /// and are arranged in a geometric series such that the ratio between
+    /// consecutive box sizes is (approximately) boxratio. The return value is
+    /// the number of box sizes in rs[].
+    /// @method getRScale
+    /// @memberof dfa
+    /// @param {number}   minbox - The minimum box size.
+    /// @param {number}   maxbox - The maximum box size.
+    /// @param {number}   boxratio - The ratio between successive box sizes.
+    /// @return {number}  Returns the number of box sizes in rs[].
+    ///
+    function getRScale(minbox, maxbox, boxratio) {
+        // Determine how many scales are needed.
+        rslen = math.log10(maxbox / minbox) / math.log10(boxratio) + 1.5
+        this.rs = core.matrix(1, rslen)
+        ir = 1
+        this.rs[1] = minbox
+        for (n = 2; n <= rslen && this.rs[n - 1] < maxbox; ir = ir + 1) {
+            if ((rw = minbox * math.pow(boxratio, ir) + 0.5) > this.rs[n - 1]) {
+                this.rs[n] = rw
+                n = n + 1
+            }
+        }
+        n = n - 1
+        if (this.rs[n] > maxbox) {
+            n = n + 1
+        }
+        return(n)
+    }
+
+    ///
+    /// Calculates the average and the deviation of a time series.
+    /// @method getAverage
+    /// @memberof maiastatistics
+    /// @param {object}   data - The time series.
+    /// @return {object}  Returns the average and the deviation of the time series.
+    ///
+    function getAverage(data) {
+        average = 0
+        deviation = 0
+        minimum = data[0, 0]
+        maximum = data[0, 0]
+        sx = 0
+        sx2 = 0
+        n = data.length
+        for (i = 0; i < data.length; i = i + 1) {
+            if (core.type(data[i]) == "undefined") {
+                continue
+            }
+            if (core.type(data[i]) == "number") {
+                x = data[i]
+            } else {
+                x = data[i, 0]
+            }
+            if (core.type(x) == "number") {
+                if (core.type(minimum) == "undefined") {
+                    minimum = x
+                }
+                if (core.type(maximum) == "undefined") {
+                    maximum = x
+                }
+                if (minimum > x) {
+                    minimum = x
+                }
+                if (maximum < x) {
+                    maximum = x
+                }
+                sx = sx + x
+                sx2 = sx2 + x * x
+            }
+        }
+        average = sx / n
+        deviation = math.sqrt((sx2 - (sx * sx) / n) / (n - 1))
+        error = deviation / math.sqrt(n)
+        returnObject = {
+            "average": average,
+            "deviation": deviation,
+            "error": error,
+            "minimum": minimum,
+            "maximum": maximum,
+            "n": n
+        }
+        return(returnObject)
+    }
+
+    ///
+    /// Performs a cumulative sum of the values in the series.
+    /// @method getCumulativeSum
+    /// @memberof maiastatistics
+    /// @param {object}   data - The time series.
+    /// @param {number}   minusAverage - Remove the average from the series.
+    /// @return {object}  Returns the cumulative sum of the values in the series.
+    ///
+    function getCumulativeSum(data, minusAverage) {
+        if (core.type(minusAverage) == "undefined") {
+            minusAverage = false
+        }
+        
+        n = core.length(data)
+        y = core.matrix(0, n)
+        s = 0.0
+        avgData = this.getAverage(data)
+        for (i = 0; i <= n; i = i + 1) {
+            if (core.type(data[i]) == "undefined") {
+                continue
+            }
+            if (core.type(data[i]) == "number") {
+                x = data[i]
+            } else {
+                x = data[i, 0]
+            }
+            if (minusAverage) {
+                s = s + (x - avgData.average)
+            } else {
+                s = s + x
+            }
+            
+            y[i] = s
+        }
+        return(y)
+    }
+
+    ///
+    /// This function is based on lfit() and gaussj() from Numerical Recipes in C
+    /// (Press, Teukolsky, Vetterling, and Flannery; Cambridge U. Press, 1992).  It
+    /// fits a polynomial of degree (nfit-1) to a set of boxsize points given by
+    /// x[1...boxsize,2] and y[1...boxsize].  The return value is the sum of the
+    /// squared errors (chisq) between the (x,y) pairs and the fitted polynomial.
+    /// @method getPolyfit
+    /// @memberof dfa
+    /// @param {object}   x - Array containing the values of X.
+    /// @param {object}   y - Array containing the values of Y.
+    /// @param {number}   boxsize - The box size.
+    /// @param {number}   nfit - Order of detrending (2: linear, 3: quadratic, etc).
+    /// @return {object}  Returns the mean squared fluctuations in mse.
+    ///
+    function getPolyfit(x, y, boxsize, nfit) {
+        pboxsize = 0
+
+        // This block sets up the covariance matrix.  Provided that boxsize
+        // never decreases (which is true in this case), covar0 can be calculated
+        // incrementally from the previous value.
+        // This will be false most of the time.
+        if (pboxsize != boxsize) {
+            // This should never happen.
+            if (pboxsize > boxsize) {
+                pboxsize = 0
+            }
+            // This should be true the first time only.
+            if (pboxsize == 0L) {
+                for (j = 1; j <= nfit; j = j + 1) {
+                    for (k = 1; k <= nfit; k = k + 1) {
+                        covar0[j, k] = 0.0
+                    }
+                }
+            }
+            for (i = pboxsize + 1; i <= boxsize; i = i + 1) {
+                for (j = 1; j <= nfit; j++) {
+                    for (k = 1, temp = x[i, j]; k <= j; k = k + 1) {
+                        covar0[j, k] = covar0[j, k] + temp * x[i, k]
+                    }
+                }
+            }
+            for (j = 2; j <= nfit; j = j + 1) {
+                for (k = 1; k < j; k = k + 1) {
+                    covar0[k, j] = covar0[j, k]
+                }
+            }
+            pboxsize = boxsize
+        }
+        for (j = 1; j <= nfit; j = j + 1) {
+            beta[j] = ipiv[j] = 0
+            for (k = 1; k <= nfit; k = k + 1) {
+                covar[j, k] = covar0[j, k]
+            }
+        }
+        for (i = 1; i <= boxsize; i = i + 1) {
+            beta[1] = beta[1] + (temp = y[i])
+            beta[2] = beta[2] + temp * i
+        }
+        if (nfit > 2) {
+            for (i = 1; i <= boxsize; i = i + 1) {
+                for (j = 3, temp = y[i]; j <= nfit; j = j + 1) {
+                    beta[j] = beta[j] + temp * x[i, j]
+                }
+            }
+        }
+        for (i = 1; i <= nfit; i = i + 1) {
+            big = 0.0
+            for (j = 1; j <= nfit; j = j + 1) {
+                if (ipiv[j] != 1) {
+                    for (k = 1; k <= nfit; k = k + 1) {
+                        if (ipiv[k] == 0) {
+                            if ((temp = covar[j, k]) >= big || (temp = -temp) >= big) {
+                                big = temp
+                                irow = j
+                                icol = k
+                            }
+                        } elseif (ipiv[k] > 1) {
+                            throw("The matrix is singular")
+                        }
+                    }
+                }
+            }
+            ipiv[icol] = ipiv[icol] + 1;
+            if (irow != icol) {
+                for (j = 1; j <= nfit; j = j + 1) {
+                    temp = covar[irow, j]
+                    covar[irow, j] = covar[icol, j]
+                    covar[icol, j] = temp
+                }
+                temp = beta[irow]
+                beta[irow] = beta[icol]
+                beta[icol] = temp
+            }
+            indxr[i] = irow
+            indxc[i] = icol
+            if (covar[icol][icol] == 0.0) {
+               throw("The matrix is singular")
+            }
+            pivinv = 1.0 / covar[icol, icol]
+            covar[icol, icol] = 1.0
+            for (j = 1; j <= nfit; j = j + 1) {
+                covar[icol, j] = covar[icol, j] * pivinv
+            }
+            beta[icol] = beta[icol] * pivinv;
+            for (j = 1; j <= nfit; j = j + 1) {
+                if (j != icol) {
+                    temp = covar[j, icol]
+                    covar[j, icol] = 0.0
+                    for (k = 1; k <= nfit; k++) {
+                        covar[j, k] = covar[j, k] - covar[icol, k] * temp
+                    }
+                    beta[j] = beta[j] - beta[icol] * temp
+                }
+            }
+        }
+        chisq = 0.0
+        if (nfit <= 2) {
+            for (i = 1; i <= boxsize; i = i + 1) {
+                temp = beta[1] + beta[2] * i - y[i]
+                chisq = chisq + temp * temp
+            }
+        } else {
+            for (i = 1; i <= boxsize; i = i + 1) {
+                temp = beta[1] + beta[2] * i - y[i]
+                for (j = 3; j <= nfit; j = j + 1) {
+                    temp = temp + beta[j] * x[i, j]
+                }
+                chisq = chisq + temp * temp
+            }
+        }
+        return(chisq)
+    }
 
     ///
     /// Performs the detrended fluctuation analysis.
@@ -95,4 +352,6 @@ namespace dfa {
             this.mse[i] = this.mse[i] / stat
         }
     }
+
+    return(mse)
 }
