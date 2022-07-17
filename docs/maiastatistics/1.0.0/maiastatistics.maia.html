@@ -149,7 +149,11 @@ namespace maiastatistics {
         sx2 = 0
         n = data.length
         for (i = 0; i &lt; data.length; i = i + 1) {
-            x = data[i, 0]
+            if (core.type(data[i]) == "number") {
+                x = data[i]
+            } else {
+                x = data[i, 0]
+            }
             if (core.type(x) == "number") {
                 if (core.type(minimum) == "undefined") {
                     minimum = x
@@ -296,6 +300,13 @@ namespace maiastatistics {
         dimI = dimData[0]
         dimJ = dimData[1]
 
+        if (core.type(begin) == "undefined") {
+            begin = 0
+        }
+        if (core.type(end) == "undefined") {
+            end = dimI
+        }
+        
         x = 0.0
         y = 0.0
         sx = 0.0
@@ -349,98 +360,6 @@ namespace maiastatistics {
         return([ab[0, 0]; ab[1, 0]; r2])
     }
 
-    ///
-    /// Performs a cumulative sum of the values in the series.
-    /// @method getCumulativeSum
-    /// @memberof maiastatistics
-    /// @param {object}   data - The time series.
-    /// @return {object}  Returns the cumulative sum of the values in the series.
-    ///
-    function getCumulativeSum(data) {
-        n = core.length(data)
-        
-        y = core.matrix(0, n)
-        
-        s = 0.0
-        
-        avgData = this.getAverage(data)
-        
-        for (i = 0; i &lt;= n; i = i + 1) {
-            if (core.type(data[i]) == "undefined") {
-                continue
-            }
-            s = s + (data[i, 0] - avgData.average)
-            
-            y[i] = s
-        }
-        return(y)
-    }
-
-    ///
-    /// Calculates the mean square fluctuation.
-    /// @method getCumulativeSum
-    /// @memberof maiastatistics
-    /// @param {object}   data - The time series.
-    /// @param {object}   size - The box size.
-    /// @return {object}  Returns the mean square fluctuation.
-    ///
-    function getMeanSquaredFluctuation(data, size) {
-        l = core.length(data)
-        nboxes = l / size
-        
-        f = core.matrix(0, nboxes + 1)
-        
-        for (n = 1; n &lt;= nboxes; n = n + 1) {
-            begin = (n - 1) * size + 1
-            end = begin + size - 1
-            
-            res = this.getLsqr(data, begin, end)
-
-            a = res[0]
-            b = res[1]
-            
-            s = 0.0
-            
-            for (k = begin; k &lt;= end; k = k + 1) {
-                yk = data[k]
-                ypk = (a + b * k)
-                
-                s = s + (yk - ypk) ^ 2
-            }
-            
-            f[n] =  s / size
-        }
-        
-        return(f)
-    }
-
-    ///
-    /// Calculates the detrended fluctuation analysis (DFA) of a time series.
-    /// @method getDFA
-    /// @memberof maiastatistics
-    /// @param {object}   data - The time series.
-    /// @param {object}   sizes - The box sizes array.
-    /// @return {object}  Returns the detrended fluctuation analysis (DFA) of a time series.
-    ///
-    function getDFA(data, sizes) {
-        l = core.length(data)
-        
-        mDFA = core.matrix(0, l)
-        
-        // Do the cumulative sum of the series.
-        cSum = this.getCumulativeSum(data)
-        
-        foreach (sizes; index; size) {
-            rMSF= this.getMeanSquaredFluctuation(cSum, size)
-            n = length(rMSF)
-            
-            avgData = this.getAverage(rMSF)
-            mDFA[index] = math.sqrt(avgData.average)
-        }
-        
-        return(mdfa)
-    }
-
     /// Starts the application and processes the data passed as command line arguments.
     /// @method run
     /// @memberof maiastatistics
@@ -454,7 +373,7 @@ namespace maiastatistics {
             filePath = core.slice(filePath, 0, filePath.length - 2)
             filePath = filePath.join("/")
             this.scriptPath = filePath
-            this.cnaLibrary = this.scriptPath + "/maia/cna/cna.maia"
+            this.cnaLibrary = this.scriptPath + "/maia/dfa/dfa.maia"
             system.source(this.cnaLibrary)            
             readTextFile = fs.readFileSync
             // Read file callback.
@@ -760,29 +679,19 @@ namespace maiastatistics {
                     fileExtension = fileExtension.pop()
                     inputData = system.loadCSV(inputFile, linesToSkip, separator, true, true)
                     // Create the scale matrix.
-                    lenData = core.length(inputData)
-                    maxSize = lenData / 2
-                    j = 0
-                    s = bSize
-                    sizes = []
-                    while (s &lt; maxSize) {
-                        sizes[j] = s
-                        j = j + 1
-                        s = s + sizeIncrement
-                    }
-                    dfa = this.getDFA(inputData, sizes)
-                    lsqr = this.getLsqr(dfa)
+                    //dfa = dfa.getDFA(inputData, sizes)
+                    //lsqr = this.getLsqr(dfa)
                     // Saves the report file.
-                    reportFileContents = ""
-                    reportFileContents = reportFileContents + "DFA: " + lsqr[1, 0] + "\n"
-                    if (reportFile == "") {
-                        reportFile = fileName + "-report-dfa.txt"
-                    }
-                    if (outputFile == "") {
-                        outputFile = fileName + "-dfa." + fileExtension
-                    }
-                    fileContents = system.createCSV(dfa, separator)
-                    fs.writeFileSync(outputFile, fileContents)
+                    // reportFileContents = ""
+                    // reportFileContents = reportFileContents + "DFA: " + lsqr[1, 0] + "\n"
+                    // if (reportFile == "") {
+                    //     reportFile = fileName + "-report-dfa.txt"
+                    // }
+                    // if (outputFile == "") {
+                    //     outputFile = fileName + "-dfa." + fileExtension
+                    // }
+                    // fileContents = system.createCSV(dfa, separator)
+                    // fs.writeFileSync(outputFile, fileContents)
                 } else {
                     system.log(maiastatistics.appTitle + " Command Line Interface (CLI)")
                     system.log("Usage: " + maiastatistics.appName + " [options] [input file] [--] [arguments]")
@@ -814,7 +723,7 @@ if (core.type(process) != "undefined") {
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.7</a> on Thu Jul 14 2022 18:24:55 GMT-0300 (Horário Padrão de Brasília)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.10</a> on Sun Jul 17 2022 15:43:51 GMT+0000 (Coordinated Universal Time)
 </footer>
 
 <script> prettyPrint(); </script>

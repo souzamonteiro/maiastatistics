@@ -22,76 +22,6 @@
  /// @namespace dfa
  ///
 namespace dfa {
-    local seq = []
-    local rs = []
-    local nr = 0
-    local nfit = 2
-    local beta = []
-    local covar = []
-    local covar0 = []
-    local indxc = []
-    local indxr = []
-    local ipiv = []
-    local mse = []
-    local x = []
-
-    ///
-    /// This function allocates workspace for getDfa() and getPolyfit(), and sets x[i,j] = i^(j-1), in preparation for polyfit().
-    /// @method init
-    /// @memberof dfa
-    function init() {
-        beta = core.matrix(0, 1, nfit)
-        covar = core.matrix(0, 1, nfit, 1, nfit)
-        covar0 = core.matrix(0, 1, nfit, 1, nfit)
-        indxc = core.matrix(0, 1, nfit)
-        indxr = core.matrix(0, 1, nfit)
-        ipiv = core.matrix(0, 1, nfit)
-        mse = core.matrix(0, 1, nr)
-        x = core.matrix(0, 1, rs[nr], 1, nfit)
-
-        for (i = 1; i <= rs[nr]; i = i + 1) {
-            x[i, 1] = 1.0
-            x[i, 2] = i
-            for (j = 3; j <= nfit; j = j + 1) {
-                x[i, j] = x[i, j - 1] * i
-            }
-        }
-    }
-
-    init()
-
-    ///
-    /// Allocates and fills rs[], the array of box sizes used by getDfa() below.
-    /// The box sizes range from (exactly) minbox to (approximately) maxbox,
-    /// and are arranged in a geometric series such that the ratio between
-    /// consecutive box sizes is (approximately) boxratio. The return value is
-    /// the number of box sizes in rs[].
-    /// @method getRScale
-    /// @memberof dfa
-    /// @param {number}   minbox - The minimum box size.
-    /// @param {number}   maxbox - The maximum box size.
-    /// @param {number}   boxratio - The ratio between successive box sizes.
-    /// @return {number}  Returns the number of box sizes in rs[].
-    ///
-    function getRScale(minbox, maxbox, boxratio) {
-        // Determine how many scales are needed.
-        rslen = math.log10(maxbox / minbox) / math.log10(boxratio) + 1.5
-        this.rs = core.matrix(1, rslen)
-        ir = 1
-        this.rs[1] = minbox
-        for (n = 2; n <= rslen && this.rs[n - 1] < maxbox; ir = ir + 1) {
-            if ((rw = minbox * math.pow(boxratio, ir) + 0.5) > this.rs[n - 1]) {
-                this.rs[n] = rw
-                n = n + 1
-            }
-        }
-        n = n - 1
-        if (this.rs[n] > maxbox) {
-            n = n + 1
-        }
-        return(n)
-    }
-
     ///
     /// Calculates the average and the deviation of a time series.
     /// @method getAverage
@@ -148,6 +78,111 @@ namespace dfa {
     }
 
     ///
+    /// Convert a series to log10.
+    /// @method toLog10
+    /// @memberof maiastatistics
+    /// @param {object}   data - The time series.
+    /// @return {object}  Returns the series in log10.
+    ///
+    function toLog10(data) {
+        n = data.length
+        log10Data= []
+        for (i = 0; i < data.length; i = i + 1) {
+            if (core.type(data[i]) == "undefined") {
+                continue
+            }
+            if (core.type(data[i]) == "number") {
+                x = data[i]
+                log10Data.push([x])
+            } else {
+                x = data[i, 0]
+                y = data[i, 1]
+                log10Data.push([x, y])
+            }
+            
+        }
+        return(log10Data)
+    }
+
+    ///
+    /// Obtains the best curve that approximates a set of points, using the least squares method.
+    /// References:
+    /// Weisstein, Eric W. "Least Squares Fitting".
+    /// From MathWorld--A Wolfram Web Resource.
+    /// http://mathworld.wolfram.com/LeastSquaresFitting.html 
+    /// @method getLsqr
+    /// @memberof maiastatistics
+    /// @param {object}   data - The time series.
+    /// @param {number}   begin - The the first point of time series.
+    /// @param {number}   end - The the last point of time series.
+    /// @return {object}  Returns the best curve that approximates a set of points.
+    ///
+    function getLsqr(data, begin, end) {
+        dimData = core.dim(data)
+        dimI = dimData[0]
+        dimJ = dimData[1]
+
+        if (core.type(begin) == "undefined") {
+            begin = 0
+        }
+        if (core.type(end) == "undefined") {
+            end = dimI
+        }
+        
+        x = 0.0
+        y = 0.0
+        sx = 0.0
+        sy = 0.0
+        sxy = 0.0
+        sx2 = 0.0
+        sy2 = 0.0
+        n = 0
+        
+        if (core.type(begin) == "undefined") {
+            begin = 0
+        }
+        if (core.type(end) == "undefined") {
+            end = dimI - 1
+        }
+        // Read each value of the series and calculates
+        // a and b to f(a, b) = a + b * x.
+        for (i = begin; i <= end; i = i + 1) {
+            if (dimJ == 2) {
+                x = data[i, 0]
+                y = data[i, 1]
+            } else {
+                x = i
+                y = data[i, 0]
+            }
+            if (core.type(x) == "undefined") {
+                continue
+            }
+            if (core.type(y) == "undefined") {
+                continue
+            }
+            sx = sx + x
+            sy = sy + y
+            sxy = sxy + x * y
+            sx2 = sx2 + x * x
+            sy2 = sy2 + y * y
+            n = n + 1
+        }
+        
+        if (n == 0) {
+            return([0; 0; 0])
+        }
+
+        m1 = [n, sx; sx, sx2]
+        m2 = [sy; sxy]
+
+        //ab = m1^-1 * m2
+        ab = m2 / m1
+        r2 = ((sxy - sx * (sy / n)) ^ 2) / ((sx2 - (sx * sx) / n) * (sy2 - (sy * sy) / n))
+
+        return([ab[0, 0]; ab[1, 0]; r2])
+    }
+
+    ///
     /// Performs a cumulative sum of the values in the series.
     /// @method getCumulativeSum
     /// @memberof maiastatistics
@@ -183,6 +218,42 @@ namespace dfa {
         }
         return(y)
     }
+    
+    ///
+    /// Allocates and fills rs[], the array of box sizes used by getDfa() below.
+    /// The box sizes range from (exactly) minbox to (approximately) maxbox,
+    /// and are arranged in a geometric series such that the ratio between
+    /// consecutive box sizes is (approximately) boxratio. The return value is
+    /// the number of box sizes in rs[].
+    /// @method getRScale
+    /// @memberof dfa
+    /// @param {number}   minbox - The minimum box size.
+    /// @param {number}   maxbox - The maximum box size.
+    /// @param {number}   boxratio - The ratio between successive box sizes.
+    /// @return {number}  Returns the number of box sizes in rs[].
+    ///
+    function getRScale(minbox, maxbox, boxratio) {
+        // Determine how many scales are needed.
+        rslen = math.log10(maxbox / minbox) / math.log10(boxratio) + 1.5
+        rs = core.matrix(1, rslen)
+        ir = 1
+        rs[1] = minbox
+        for (n = 2; n <= rslen && rs[n - 1] < maxbox; ir = ir + 1) {
+            if ((rw = minbox * math.pow(boxratio, ir) + 0.5) > rs[n - 1]) {
+                rs[n] = rw
+                n = n + 1
+            }
+        }
+        n = n - 1
+        if (this.rs[n] > maxbox) {
+            n = n - 1
+        }
+        returnObject = {
+            "rs": rs,
+            "n": n
+        }
+        return(returnObject)
+    }
 
     ///
     /// This function is based on lfit() and gaussj() from Numerical Recipes in C
@@ -194,11 +265,18 @@ namespace dfa {
     /// @memberof dfa
     /// @param {object}   x - Array containing the values of X.
     /// @param {object}   y - Array containing the values of Y.
+    /// @param {object}   start - Start point in array containing the values of Y.
     /// @param {number}   boxsize - The box size.
     /// @param {number}   nfit - Order of detrending (2: linear, 3: quadratic, etc).
     /// @return {object}  Returns the mean squared fluctuations in mse.
     ///
-    function getPolyfit(x, y, boxsize, nfit) {
+    function getPolyfit(x, y, start, boxsize, nfit) {
+        beta = core.matrix(0, 1, nfit)
+        covar = core.matrix(0, 1, nfit, 1, nfit)
+        covar0 = core.matrix(0, 1, nfit, 1, nfit)
+        indxc = core.matrix(0, 1, nfit)
+        indxr = core.matrix(0, 1, nfit)
+        ipiv = core.matrix(0, 1, nfit)
         pboxsize = 0
 
         // This block sets up the covariance matrix.  Provided that boxsize
@@ -211,7 +289,7 @@ namespace dfa {
                 pboxsize = 0
             }
             // This should be true the first time only.
-            if (pboxsize == 0L) {
+            if (pboxsize == 0) {
                 for (j = 1; j <= nfit; j = j + 1) {
                     for (k = 1; k <= nfit; k = k + 1) {
                         covar0[j, k] = 0.0
@@ -219,8 +297,9 @@ namespace dfa {
                 }
             }
             for (i = pboxsize + 1; i <= boxsize; i = i + 1) {
-                for (j = 1; j <= nfit; j++) {
-                    for (k = 1, temp = x[i, j]; k <= j; k = k + 1) {
+                for (j = 1; j <= nfit; j = j + 1) {
+                    temp = x[i, j]
+                    for (k = 1; k <= j; k = k + 1) {
                         covar0[j, k] = covar0[j, k] + temp * x[i, k]
                     }
                 }
@@ -239,12 +318,13 @@ namespace dfa {
             }
         }
         for (i = 1; i <= boxsize; i = i + 1) {
-            beta[1] = beta[1] + (temp = y[i])
+            beta[1] = beta[1] + (temp = y[i + start])
             beta[2] = beta[2] + temp * i
         }
         if (nfit > 2) {
             for (i = 1; i <= boxsize; i = i + 1) {
-                for (j = 3, temp = y[i]; j <= nfit; j = j + 1) {
+                temp = y[i + start]
+                for (j = 3; j <= nfit; j = j + 1) {
                     beta[j] = beta[j] + temp * x[i, j]
                 }
             }
@@ -255,7 +335,7 @@ namespace dfa {
                 if (ipiv[j] != 1) {
                     for (k = 1; k <= nfit; k = k + 1) {
                         if (ipiv[k] == 0) {
-                            if ((temp = covar[j, k]) >= big || (temp = -temp) >= big) {
+                            if ((temp = covar[j, k]) >= big || (temp = -1 * temp) >= big) {
                                 big = temp
                                 irow = j
                                 icol = k
@@ -266,7 +346,7 @@ namespace dfa {
                     }
                 }
             }
-            ipiv[icol] = ipiv[icol] + 1;
+            ipiv[icol] = ipiv[icol] + 1
             if (irow != icol) {
                 for (j = 1; j <= nfit; j = j + 1) {
                     temp = covar[irow, j]
@@ -287,12 +367,12 @@ namespace dfa {
             for (j = 1; j <= nfit; j = j + 1) {
                 covar[icol, j] = covar[icol, j] * pivinv
             }
-            beta[icol] = beta[icol] * pivinv;
+            beta[icol] = beta[icol] * pivinv
             for (j = 1; j <= nfit; j = j + 1) {
                 if (j != icol) {
                     temp = covar[j, icol]
                     covar[j, icol] = 0.0
-                    for (k = 1; k <= nfit; k++) {
+                    for (k = 1; k <= nfit; k = k + 1) {
                         covar[j, k] = covar[j, k] - covar[icol, k] * temp
                     }
                     beta[j] = beta[j] - beta[icol] * temp
@@ -302,12 +382,12 @@ namespace dfa {
         chisq = 0.0
         if (nfit <= 2) {
             for (i = 1; i <= boxsize; i = i + 1) {
-                temp = beta[1] + beta[2] * i - y[i]
+                temp = beta[1] + beta[2] * i - y[i + start]
                 chisq = chisq + temp * temp
             }
         } else {
             for (i = 1; i <= boxsize; i = i + 1) {
-                temp = beta[1] + beta[2] * i - y[i]
+                temp = beta[1] + beta[2] * i - y[i + start]
                 for (j = 3; j <= nfit; j = j + 1) {
                     temp = temp + beta[j] * x[i, j]
                 }
@@ -337,6 +417,15 @@ namespace dfa {
             sw = 0
         }
 
+        mse = core.matrix(0, 1, nr)
+        x = core.matrix(0, 1, rs[nr], 1, nfit)
+        for (i = 1; i <= rs[nr]; i = i + 1) {
+            x[i, 1] = 1.0
+            x[i, 2] = i
+            for (j = 3; j <= nfit; j = j + 1) {
+                x[i, j] = x[i, j - 1] * i
+            }
+        }
         for (i = 1; i <= nr; i = i + 1) {
             boxsize = rs[i]
             if (sw) {
@@ -346,12 +435,12 @@ namespace dfa {
                 inc = boxsize
                 stat = math.round((npts / boxsize) * boxsize)
             }
-            for (mse[i] = 0.0, j = 0; j <= npts - boxsize; j = j + inc) {
-                this.mse[i] = this.mse[i] + this.getPolyfit(this.x, seq + j, boxsize, nfit)
+            mse[i] = 0.0
+            for (j = 0; j <= npts - boxsize; j = j + inc) {
+                mse[i] = mse[i] + this.getPolyfit(x, seq, j, boxsize, nfit)
             }
-            this.mse[i] = this.mse[i] / stat
+            mse[i] = mse[i] / stat
         }
+        return(mse)
     }
-
-    return(mse)
 }
