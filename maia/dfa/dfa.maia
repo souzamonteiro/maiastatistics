@@ -359,7 +359,7 @@ namespace dfa {
             }
             indxr[i] = irow
             indxc[i] = icol
-            if (covar[icol][icol] == 0.0) {
+            if (covar[icol, icol] == 0.0) {
                throw("The matrix is singular")
             }
             pivinv = 1.0 / covar[icol, icol]

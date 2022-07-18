@@ -27,7 +27,7 @@ namespace maiastatistics {
     appTitle = "MaiaStatistics"
     appName = "maiastatistics"
     scriptPath = "./"
-    cnaLibrary = this.scriptPath + "/maia/cna/cna.maia"
+    dfaLibrary = this.scriptPath + "/maia/dfa/dfa.maia"
     
     ///
     /// Creates a new time series containing only the specified column.
@@ -345,8 +345,8 @@ namespace maiastatistics {
             filePath = core.slice(filePath, 0, filePath.length - 2)
             filePath = filePath.join("/")
             this.scriptPath = filePath
-            this.cnaLibrary = this.scriptPath + "/maia/dfa/dfa.maia"
-            system.source(this.cnaLibrary)            
+            this.dfaLibrary = this.scriptPath + "/maia/dfa/dfa.maia"
+            system.source(this.dfaLibrary)            
             readTextFile = fs.readFileSync
             // Read file callback.
             function readFile(input) {
@@ -631,7 +631,8 @@ namespace maiastatistics {
                     fileExtension = inputFile.split(".")
                     fileExtension = fileExtension.pop()
                     inputData = system.loadCSV(inputFile, linesToSkip, separator, true, true)
-                    lsqr = this.getLsqr(inputData)
+                    //lsqr = this.getLsqr(inputData)
+                    lsqr = dfa.getLsqr(inputData)
                     // Saves the report file.
                     reportFileContents = ""
                     reportFileContents = reportFileContents + "y = a + b * x\n"
