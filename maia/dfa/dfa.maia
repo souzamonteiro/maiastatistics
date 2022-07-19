@@ -121,14 +121,14 @@ namespace dfa {
         dimData = core.dim(data)
         dimI = dimData[0]
         dimJ = dimData[1]
-
+        
         if (core.type(begin) == "undefined") {
             begin = 0
         }
         if (core.type(end) == "undefined") {
-            end = dimI
+            end = dimI - 1
         }
-        
+
         x = 0.0
         y = 0.0
         sx = 0.0
@@ -137,13 +137,7 @@ namespace dfa {
         sx2 = 0.0
         sy2 = 0.0
         n = 0
-        
-        if (core.type(begin) == "undefined") {
-            begin = 0
-        }
-        if (core.type(end) == "undefined") {
-            end = dimI - 1
-        }
+
         // Read each value of the series and calculates
         // a and b to f(a, b) = a + b * x.
         for (i = begin; i <= end; i = i + 1) {
@@ -194,7 +188,6 @@ namespace dfa {
         if (core.type(minusAverage) == "undefined") {
             minusAverage = false
         }
-        
         n = core.length(data)
         y = core.matrix(0, n)
         s = 0.0
@@ -211,10 +204,14 @@ namespace dfa {
             if (minusAverage) {
                 s = s + (x - avgData.average)
             } else {
-                s = s + x
+                if (core.type(x) != "undefined") {
+                    s = s + x
+                }
             }
             
-            y[i] = s
+            if (core.type(x) != "undefined") {
+                y[i] = s
+            }
         }
         return(y)
     }
@@ -402,7 +399,6 @@ namespace dfa {
     /// @method getDfa
     /// @memberof dfa
     /// @param {object}   seq - Input data array.
-    /// @param {number}   npts - Number of input points.
     /// @param {number}   nfit - Order of detrending (2: linear, 3: quadratic, etc).
     /// @param {object}   rs - Array of box sizes (uniformly distributed on log scale).
     /// @param {number}   nr - Number of entries in rs[] and mse[].
@@ -417,6 +413,7 @@ namespace dfa {
             sw = 0
         }
 
+        npts = seq.length
         mse = core.matrix(0, 1, nr)
         x = core.matrix(0, 1, rs[nr], 1, nfit)
         for (i = 1; i <= rs[nr]; i = i + 1) {

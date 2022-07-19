@@ -113,48 +113,7 @@ namespace maiastatistics {
     /// @return {object}  Returns the average and the deviation of the time series.
     ///
     function getAverage(data) {
-        average = 0
-        deviation = 0
-        minimum = data[0, 0]
-        maximum = data[0, 0]
-        sx = 0
-        sx2 = 0
-        n = data.length
-        for (i = 0; i < data.length; i = i + 1) {
-            if (core.type(data[i]) == "number") {
-                x = data[i]
-            } else {
-                x = data[i, 0]
-            }
-            if (core.type(x) == "number") {
-                if (core.type(minimum) == "undefined") {
-                    minimum = x
-                }
-                if (core.type(maximum) == "undefined") {
-                    maximum = x
-                }
-                if (minimum > x) {
-                    minimum = x
-                }
-                if (maximum < x) {
-                    maximum = x
-                }
-                sx = sx + x
-                sx2 = sx2 + x * x
-            }
-        }
-        average = sx / n
-        deviation = math.sqrt((sx2 - (sx * sx) / n) / (n - 1))
-        error = deviation / math.sqrt(n)
-        returnObject = {
-            "average": average,
-            "deviation": deviation,
-            "error": error,
-            "minimum": minimum,
-            "maximum": maximum,
-            "n": n
-        }
-        return(returnObject)
+        return(dfa.getAverage(data))
     }
 
     ///
@@ -268,68 +227,7 @@ namespace maiastatistics {
     /// @return {object}  Returns the best curve that approximates a set of points.
     ///
     function getLsqr(data, begin, end) {
-        dimData = core.dim(data)
-        dimI = dimData[0]
-        dimJ = dimData[1]
-
-        if (core.type(begin) == "undefined") {
-            begin = 0
-        }
-        if (core.type(end) == "undefined") {
-            end = dimI
-        }
-        
-        x = 0.0
-        y = 0.0
-        sx = 0.0
-        sy = 0.0
-        sxy = 0.0
-        sx2 = 0.0
-        sy2 = 0.0
-        n = 0
-        
-        if (core.type(begin) == "undefined") {
-            begin = 0
-        }
-        if (core.type(end) == "undefined") {
-            end = dimI - 1
-        }
-        // Read each value of the series and calculates
-        // a and b to f(a, b) = a + b * x.
-        for (i = begin; i <= end; i = i + 1) {
-            if (dimJ == 2) {
-                x = data[i, 0]
-                y = data[i, 1]
-            } else {
-                x = i
-                y = data[i, 0]
-            }
-            if (core.type(x) == "undefined") {
-                continue
-            }
-            if (core.type(y) == "undefined") {
-                continue
-            }
-            sx = sx + x
-            sy = sy + y
-            sxy = sxy + x * y
-            sx2 = sx2 + x * x
-            sy2 = sy2 + y * y
-            n = n + 1
-        }
-        
-        if (n == 0) {
-            return([0; 0; 0])
-        }
-
-        m1 = [n, sx; sx, sx2]
-        m2 = [sy; sxy]
-
-        //ab = m1^-1 * m2
-        ab = m2 / m1
-        r2 = ((sxy - sx * (sy / n)) ^ 2) / ((sx2 - (sx * sx) / n) * (sy2 - (sy * sy) / n))
-
-        return([ab[0, 0]; ab[1, 0]; r2])
+        return(dfa.getLsqr(data, begin, end))
     }
 
     /// Starts the application and processes the data passed as command line arguments.
@@ -381,8 +279,10 @@ namespace maiastatistics {
             calculatePearson = false
             doLSQR = false
             calculateDFA = false
-            bSize = 50
-            sizeIncrement = 10
+            minbox = 0
+            maxbox = 0
+            nfit = 2
+            sw = 0
             // Get command line arguments.
             if (system.argc > 1) {
                 i = 1
@@ -418,8 +318,10 @@ namespace maiastatistics {
                         system.log("       --pearson            Calculates the Pearson coefficient.")
                         system.log("       --lsqr               Calculates the best curve that approximates a set of points, using the least squares method.")
                         system.log("       --dfa                Calculates the DFA.")
-                        system.log("       --bsize              Box size to calculates the DFA.")
-                        system.log("       --sincr              Box size increment to calculates the DFA.")
+                        system.log("       --minbox             The minimum box size for DFA.")
+                        system.log("       --maxbox             The maximum box size for DFA.")
+                        system.log("       --nfit               The order of the regression fit for DFA.")
+                        system.log("       --sw                 The sliding window mode for DFA.")
                         process.exit(0)
                     } elseif (system.argv[i] == "-i") {
                         i = i + 1
@@ -493,12 +395,17 @@ namespace maiastatistics {
                         doLSQR = true
                     } elseif (system.argv[i] == "--dfa") {
                         calculateDFA = true
-                    } elseif (system.argv[i] == "--bsize") {
+                    } elseif (system.argv[i] == "--minbox") {
                         i = i + 1
-                        bSize = core.toNumber(system.argv[i])
-                    } elseif (system.argv[i] == "--sincr") {
+                        minbox = core.toNumber(system.argv[i])
+                    } elseif (system.argv[i] == "--maxbox") {
                         i = i + 1
-                        sizeIncrement = core.toNumber(system.argv[i])
+                        maxbox = core.toNumber(system.argv[i])
+                    } elseif (system.argv[i] == "--nfit") {
+                        i = i + 1
+                        nfit = core.toNumber(system.argv[i])
+                    } elseif (system.argv[i] == "--sw") {
+                        sw = 1
                     } else {
                         inputFile = system.argv[i]
                         break
@@ -631,8 +538,7 @@ namespace maiastatistics {
                     fileExtension = inputFile.split(".")
                     fileExtension = fileExtension.pop()
                     inputData = system.loadCSV(inputFile, linesToSkip, separator, true, true)
-                    //lsqr = this.getLsqr(inputData)
-                    lsqr = dfa.getLsqr(inputData)
+                    lsqr = this.getLsqr(inputData)
                     // Saves the report file.
                     reportFileContents = ""
                     reportFileContents = reportFileContents + "y = a + b * x\n"
@@ -651,20 +557,41 @@ namespace maiastatistics {
                     fileExtension = inputFile.split(".")
                     fileExtension = fileExtension.pop()
                     inputData = system.loadCSV(inputFile, linesToSkip, separator, true, true)
+                    // Calculates the cumulative sum.
+                    cumulativeSum = dfa.getCumulativeSum(inputData)
                     // Create the scale matrix.
-                    //dfa = dfa.getDFA(inputData, sizes)
-                    //lsqr = this.getLsqr(dfa)
+                    rsData = dfa.getRScale(minbox, maxbox, math.pow(2.0, 1.0/8.0))
+                    rs = rsData.rs
+                    nr = rsData.n
+                    system.log(JSON.stringify(rs))
+                    // if (minbox < 2 * nfit) {
+                    //     minbox = 2 * nfit
+                    // }
+                    // if (maxbox == 0 || maxbox > npts / 4) {
+                    //     maxbox = npts / 4
+                    // }
+                    // if (minbox > maxbox) {
+                    //     temp = minbox
+                    //     minbox = maxbox
+                    //     maxbox = temp
+                    //     if (minbox < 2 * nfit) {
+                    //         minbox = 2 * nfit
+                    //     }
+                    // }
+                    // Calculates the DFA.
+                    // dfa = dfa.getDFA(cumulativeSum, nfit, rs, nr, sw)
+                    // dfaLog10 = dfa.toLog10(dfa)
+                    // lsqr = this.getLsqr(dfaLog10)
                     // Saves the report file.
                     // reportFileContents = ""
-                    // reportFileContents = reportFileContents + "DFA: " + lsqr[1, 0] + "\n"
+                    // reportFileContents = reportFileContents + "y = a + b * x\n"
+                    // reportFileContents = reportFileContents + "a: " + lsqr[0, 0] + "\n"
+                    // reportFileContents = reportFileContents + "b: " + lsqr[1, 0] + "\n"
+                    // reportFileContents = reportFileContents + "r2: " + lsqr[2, 0] + "\n"
                     // if (reportFile == "") {
-                    //     reportFile = fileName + "-report-dfa.txt"
+                    //     reportFile = fileName + "-report-lsqr.txt"
                     // }
-                    // if (outputFile == "") {
-                    //     outputFile = fileName + "-dfa." + fileExtension
-                    // }
-                    // fileContents = system.createCSV(dfa, separator)
-                    // fs.writeFileSync(outputFile, fileContents)
+                    // fs.writeFileSync(reportFile, reportFileContents)
                 } else {
                     system.log(maiastatistics.appTitle + " Command Line Interface (CLI)")
                     system.log("Usage: " + maiastatistics.appName + " [options] [input file] [--] [arguments]")
