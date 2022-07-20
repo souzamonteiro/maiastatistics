@@ -557,41 +557,47 @@ namespace maiastatistics {
                     fileExtension = inputFile.split(".")
                     fileExtension = fileExtension.pop()
                     inputData = system.loadCSV(inputFile, linesToSkip, separator, true, true)
+                    // Define the boxes sizes.
+                    npts = inputData.length
+                    if (minbox < 2 * nfit) {
+                        minbox = 2 * nfit
+                    }
+                    if (maxbox == 0 || maxbox > math.round(npts / 4)) {
+                        maxbox = math.round(npts / 4)
+                    }
+                    if (minbox > maxbox) {
+                        temp = minbox
+                        minbox = maxbox
+                        maxbox = temp
+                        if (minbox < 2 * nfit) {
+                            minbox = 2 * nfit
+                        }
+                    }
                     // Calculates the cumulative sum.
                     cumulativeSum = dfa.getCumulativeSum(inputData)
                     // Create the scale matrix.
-                    rsData = dfa.getRScale(minbox, maxbox, math.pow(2.0, 1.0/8.0))
-                    rs = rsData.rs
-                    nr = rsData.n
+                    rs = dfa.getRScale(minbox, maxbox, math.pow(2.0, 1.0/8.0))
                     system.log(JSON.stringify(rs))
-                    // if (minbox < 2 * nfit) {
-                    //     minbox = 2 * nfit
-                    // }
-                    // if (maxbox == 0 || maxbox > npts / 4) {
-                    //     maxbox = npts / 4
-                    // }
-                    // if (minbox > maxbox) {
-                    //     temp = minbox
-                    //     minbox = maxbox
-                    //     maxbox = temp
-                    //     if (minbox < 2 * nfit) {
-                    //         minbox = 2 * nfit
-                    //     }
-                    // }
                     // Calculates the DFA.
-                    // dfa = dfa.getDFA(cumulativeSum, nfit, rs, nr, sw)
-                    // dfaLog10 = dfa.toLog10(dfa)
-                    // lsqr = this.getLsqr(dfaLog10)
+                    dfa = dfa.getDfa(cumulativeSum, nfit, rs, sw)
+                    //dfaLog10 = dfa.toLog10(dfa)
+                    //lsqr = this.getLsqr(dfaLog10)
+                    // Saves the DFA data.
+                    if (outputFile == "") {
+                        outputFile = fileName + "-dfa." + fileExtension
+                    }
+                    fileContents = system.createCSV(dfa, separator)
+                    fs.writeFileSync(outputFile, fileContents)
                     // Saves the report file.
-                    // reportFileContents = ""
-                    // reportFileContents = reportFileContents + "y = a + b * x\n"
+                    reportFileContents = ""
+                    reportFileContents = reportFileContents + "y = a + b * x\n"
                     // reportFileContents = reportFileContents + "a: " + lsqr[0, 0] + "\n"
                     // reportFileContents = reportFileContents + "b: " + lsqr[1, 0] + "\n"
                     // reportFileContents = reportFileContents + "r2: " + lsqr[2, 0] + "\n"
-                    // if (reportFile == "") {
-                    //     reportFile = fileName + "-report-lsqr.txt"
-                    // }
-                    // fs.writeFileSync(reportFile, reportFileContents)
+                    if (reportFile == "") {
+                        reportFile = fileName + "-report-lsqr.txt"
+                    }
+                    fs.writeFileSync(reportFile, reportFileContents)
                 } else {
                     system.log(maiastatistics.appTitle + " Command Line Interface (CLI)")
                     system.log("Usage: " + maiastatistics.appName + " [options] [input file] [--] [arguments]")

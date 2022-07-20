@@ -86,7 +86,7 @@ namespace dfa {
     ///
     function toLog10(data) {
         n = data.length
-        log10Data= []
+        log10Data = []
         for (i = 0; i < data.length; i = i + 1) {
             if (core.type(data[i]) == "undefined") {
                 continue
@@ -231,25 +231,18 @@ namespace dfa {
     ///
     function getRScale(minbox, maxbox, boxratio) {
         // Determine how many scales are needed.
-        rslen = math.log10(maxbox / minbox) / math.log10(boxratio) + 1.5
-        rs = core.matrix(1, rslen)
+        rslen = math.round(math.log10(maxbox / minbox) / math.log10(boxratio) + 1.5)
+        rs = core.matrix(0, 1, rslen)
         ir = 1
         rs[1] = minbox
-        for (n = 2; n <= rslen && rs[n - 1] < maxbox; ir = ir + 1) {
-            if ((rw = minbox * math.pow(boxratio, ir) + 0.5) > rs[n - 1]) {
+        for (n = 2; n < rslen && rs[n - 1] < maxbox; ir = ir + 1) {
+            if ((rw = math.round(minbox * math.pow(boxratio, ir) + 0.5)) > rs[n - 1]) {
                 rs[n] = rw
                 n = n + 1
             }
         }
-        n = n - 1
-        if (this.rs[n] > maxbox) {
-            n = n - 1
-        }
-        returnObject = {
-            "rs": rs,
-            "n": n
-        }
-        return(returnObject)
+        rs = rs.slice(0, n)
+        return(rs)
     }
 
     ///
@@ -401,11 +394,10 @@ namespace dfa {
     /// @param {object}   seq - Input data array.
     /// @param {number}   nfit - Order of detrending (2: linear, 3: quadratic, etc).
     /// @param {object}   rs - Array of box sizes (uniformly distributed on log scale).
-    /// @param {number}   nr - Number of entries in rs[] and mse[].
     /// @param {number}   sw - Mode (0: non-overlapping windows, 1: sliding window).
     /// @return {object}  Returns the mean squared fluctuations in mse.
     ///
-    function getDfa(seq, npts, nfit, rs, nr, sw) {
+    function getDfa(seq, npts, nfit, rs, sw) {
         if (core.type(nfit) == "undefined") {
             nfit = 2
         }
@@ -414,6 +406,7 @@ namespace dfa {
         }
 
         npts = seq.length
+        nr = rs.length
         mse = core.matrix(0, 1, nr)
         x = core.matrix(0, 1, rs[nr], 1, nfit)
         for (i = 1; i <= rs[nr]; i = i + 1) {
