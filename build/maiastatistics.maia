@@ -542,9 +542,9 @@ namespace maiastatistics {
                     // Saves the report file.
                     reportFileContents = ""
                     reportFileContents = reportFileContents + "y = a + b * x\n"
-                    reportFileContents = reportFileContents + "a: " + lsqr[0, 0] + "\n"
-                    reportFileContents = reportFileContents + "b: " + lsqr[1, 0] + "\n"
-                    reportFileContents = reportFileContents + "r2: " + lsqr[2, 0] + "\n"
+                    reportFileContents = reportFileContents + "a: " + lsqr.a + "\n"
+                    reportFileContents = reportFileContents + "b: " + lsqr.b + "\n"
+                    reportFileContents = reportFileContents + "r2: " + lsqr.r2 + "\n"
                     if (reportFile == "") {
                         reportFile = fileName + "-report-lsqr.txt"
                     }
@@ -577,7 +577,6 @@ namespace maiastatistics {
                     cumulativeSum = dfa.getCumulativeSum(inputData)
                     // Create the scale matrix.
                     rs = dfa.getRScale(minbox, maxbox, math.pow(2.0, 1.0/8.0))
-                    system.log(JSON.stringify(rs))
                     // Calculates the DFA.
                     dfa = dfa.getDfa(cumulativeSum, nfit, rs, sw)
                     //dfaLog10 = dfa.toLog10(dfa)

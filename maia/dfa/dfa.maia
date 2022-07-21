@@ -173,7 +173,12 @@ namespace dfa {
         ab = m2 / m1
         r2 = ((sxy - sx * (sy / n)) ^ 2) / ((sx2 - (sx * sx) / n) * (sy2 - (sy * sy) / n))
 
-        return([ab[0, 0]; ab[1, 0]; r2])
+        returnObject = {
+            "a": ab[0, 0],
+            "b": ab[1, 0],
+            "r2": r2
+        }
+        return(returnObject)
     }
 
     ///
@@ -261,12 +266,12 @@ namespace dfa {
     /// @return {object}  Returns the mean squared fluctuations in mse.
     ///
     function getPolyfit(x, y, start, boxsize, nfit) {
-        beta = core.matrix(0, 1, nfit)
-        covar = core.matrix(0, 1, nfit, 1, nfit)
-        covar0 = core.matrix(0, 1, nfit, 1, nfit)
-        indxc = core.matrix(0, 1, nfit)
-        indxr = core.matrix(0, 1, nfit)
-        ipiv = core.matrix(0, 1, nfit)
+        beta = core.matrix(0, nfit)
+        covar = core.matrix(0, nfit, nfit)
+        covar0 = core.matrix(0, nfit, nfit)
+        indxc = core.matrix(0, nfit)
+        indxr = core.matrix(0, nfit)
+        ipiv = core.matrix(0, nfit)
         pboxsize = 0
 
         // This block sets up the covariance matrix.  Provided that boxsize
@@ -280,50 +285,50 @@ namespace dfa {
             }
             // This should be true the first time only.
             if (pboxsize == 0) {
-                for (j = 1; j <= nfit; j = j + 1) {
-                    for (k = 1; k <= nfit; k = k + 1) {
+                for (j = 0; j < nfit; j = j + 1) {
+                    for (k = 0; k < nfit; k = k + 1) {
                         covar0[j, k] = 0.0
                     }
                 }
             }
-            for (i = pboxsize + 1; i <= boxsize; i = i + 1) {
-                for (j = 1; j <= nfit; j = j + 1) {
+           for (i = pboxsize + 1; i <= boxsize; i = i + 1) {
+                for (j = 0; j < nfit; j = j + 1) {
                     temp = x[i, j]
-                    for (k = 1; k <= j; k = k + 1) {
+                    for (k = 0; k < j; k = k + 1) {
                         covar0[j, k] = covar0[j, k] + temp * x[i, k]
                     }
                 }
             }
-            for (j = 2; j <= nfit; j = j + 1) {
-                for (k = 1; k < j; k = k + 1) {
+            for (j = 1; j < nfit; j = j + 1) {
+                for (k = 0; k < j; k = k + 1) {
                     covar0[k, j] = covar0[j, k]
                 }
             }
             pboxsize = boxsize
         }
-        for (j = 1; j <= nfit; j = j + 1) {
+        for (j = 0; j < nfit; j = j + 1) {
             beta[j] = ipiv[j] = 0
-            for (k = 1; k <= nfit; k = k + 1) {
+            for (k = 0; k < nfit; k = k + 1) {
                 covar[j, k] = covar0[j, k]
             }
         }
-        for (i = 1; i <= boxsize; i = i + 1) {
+        for (i = 0; i < boxsize; i = i + 1) {
             beta[1] = beta[1] + (temp = y[i + start])
             beta[2] = beta[2] + temp * i
         }
         if (nfit > 2) {
-            for (i = 1; i <= boxsize; i = i + 1) {
+            for (i = 0; i < boxsize; i = i + 1) {
                 temp = y[i + start]
-                for (j = 3; j <= nfit; j = j + 1) {
+                for (j = 2; j < nfit; j = j + 1) {
                     beta[j] = beta[j] + temp * x[i, j]
                 }
             }
         }
-        for (i = 1; i <= nfit; i = i + 1) {
+        for (i = 0; i < nfit; i = i + 1) {
             big = 0.0
-            for (j = 1; j <= nfit; j = j + 1) {
+            for (j = 0; j < nfit; j = j + 1) {
                 if (ipiv[j] != 1) {
-                    for (k = 1; k <= nfit; k = k + 1) {
+                    for (k = 0; k < nfit; k = k + 1) {
                         if (ipiv[k] == 0) {
                             if ((temp = covar[j, k]) >= big || (temp = -1 * temp) >= big) {
                                 big = temp
@@ -338,7 +343,7 @@ namespace dfa {
             }
             ipiv[icol] = ipiv[icol] + 1
             if (irow != icol) {
-                for (j = 1; j <= nfit; j = j + 1) {
+                for (j = 0; j < nfit; j = j + 1) {
                     temp = covar[irow, j]
                     covar[irow, j] = covar[icol, j]
                     covar[icol, j] = temp
@@ -354,15 +359,15 @@ namespace dfa {
             }
             pivinv = 1.0 / covar[icol, icol]
             covar[icol, icol] = 1.0
-            for (j = 1; j <= nfit; j = j + 1) {
+            for (j = 0; j < nfit; j = j + 1) {
                 covar[icol, j] = covar[icol, j] * pivinv
             }
             beta[icol] = beta[icol] * pivinv
-            for (j = 1; j <= nfit; j = j + 1) {
+            for (j = 0; j < nfit; j = j + 1) {
                 if (j != icol) {
                     temp = covar[j, icol]
                     covar[j, icol] = 0.0
-                    for (k = 1; k <= nfit; k = k + 1) {
+                    for (k = 0; k < nfit; k = k + 1) {
                         covar[j, k] = covar[j, k] - covar[icol, k] * temp
                     }
                     beta[j] = beta[j] - beta[icol] * temp
@@ -371,14 +376,14 @@ namespace dfa {
         }
         chisq = 0.0
         if (nfit <= 2) {
-            for (i = 1; i <= boxsize; i = i + 1) {
+            for (i = 0; i < boxsize; i = i + 1) {
                 temp = beta[1] + beta[2] * i - y[i + start]
                 chisq = chisq + temp * temp
             }
         } else {
-            for (i = 1; i <= boxsize; i = i + 1) {
+            for (i = 0; i < boxsize; i = i + 1) {
                 temp = beta[1] + beta[2] * i - y[i + start]
-                for (j = 3; j <= nfit; j = j + 1) {
+                for (j = 2; j < nfit; j = j + 1) {
                     temp = temp + beta[j] * x[i, j]
                 }
                 chisq = chisq + temp * temp
@@ -397,7 +402,7 @@ namespace dfa {
     /// @param {number}   sw - Mode (0: non-overlapping windows, 1: sliding window).
     /// @return {object}  Returns the mean squared fluctuations in mse.
     ///
-    function getDfa(seq, npts, nfit, rs, sw) {
+    function getDfa(seq, nfit, rs, sw) {
         if (core.type(nfit) == "undefined") {
             nfit = 2
         }
@@ -406,17 +411,17 @@ namespace dfa {
         }
 
         npts = seq.length
-        nr = rs.length
-        mse = core.matrix(0, 1, nr)
-        x = core.matrix(0, 1, rs[nr], 1, nfit)
-        for (i = 1; i <= rs[nr]; i = i + 1) {
-            x[i, 1] = 1.0
-            x[i, 2] = i
-            for (j = 3; j <= nfit; j = j + 1) {
+        nr = rs.length - 1
+        mse = core.matrix(0, nr)
+        x = core.matrix(0, rs[nr], nfit)
+        for (i = 0; i < rs[nr]; i = i + 1) {
+            x[i, 0] = 1.0
+            x[i, 1] = i
+            for (j = 2; j <= nfit; j = j + 1) {
                 x[i, j] = x[i, j - 1] * i
             }
         }
-        for (i = 1; i <= nr; i = i + 1) {
+        for (i = 0; i < nr; i = i + 1) {
             boxsize = rs[i]
             if (sw) {
                 inc = 1
