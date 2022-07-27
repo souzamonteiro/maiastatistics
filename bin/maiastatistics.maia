@@ -575,28 +575,31 @@ namespace maiastatistics {
                     }
                     // Calculates the cumulative sum.
                     cumulativeSum = dfa.getCumulativeSum(inputData)
+                    system.log("npts: " + core.length(cumulativeSum))
+                    system.log(JSON.stringify(cumulativeSum))
                     // Create the scale matrix.
                     rs = dfa.getRScale(minbox, maxbox, math.pow(2.0, 1.0/8.0))
                     // Calculates the DFA.
                     dfa = dfa.getDfa(cumulativeSum, nfit, rs, sw)
-                    //dfaLog10 = dfa.toLog10(dfa)
+                    dfaLog10 = dfa.toLog10(dfa)
+                    system.log(JSON.stringify(dfaLog10))
                     //lsqr = this.getLsqr(dfaLog10)
                     // Saves the DFA data.
-                    if (outputFile == "") {
-                        outputFile = fileName + "-dfa." + fileExtension
-                    }
-                    fileContents = system.createCSV(dfa, separator)
-                    fs.writeFileSync(outputFile, fileContents)
+                    //if (outputFile == "") {
+                    //    outputFile = fileName + "-dfa." + fileExtension
+                    //}
+                    //fileContents = system.createCSV(dfaLog10, separator)
+                    //fs.writeFileSync(outputFile, fileContents)
                     // Saves the report file.
-                    reportFileContents = ""
-                    reportFileContents = reportFileContents + "y = a + b * x\n"
+                    //reportFileContents = ""
+                    //reportFileContents = reportFileContents + "y = a + b * x\n"
                     // reportFileContents = reportFileContents + "a: " + lsqr[0, 0] + "\n"
                     // reportFileContents = reportFileContents + "b: " + lsqr[1, 0] + "\n"
                     // reportFileContents = reportFileContents + "r2: " + lsqr[2, 0] + "\n"
-                    if (reportFile == "") {
-                        reportFile = fileName + "-report-lsqr.txt"
-                    }
-                    fs.writeFileSync(reportFile, reportFileContents)
+                    //if (reportFile == "") {
+                    //    reportFile = fileName + "-report-lsqr.txt"
+                    //}
+                    //fs.writeFileSync(reportFile, reportFileContents)
                 } else {
                     system.log(maiastatistics.appTitle + " Command Line Interface (CLI)")
                     system.log("Usage: " + maiastatistics.appName + " [options] [input file] [--] [arguments]")
