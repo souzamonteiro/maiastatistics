@@ -575,14 +575,28 @@ namespace maiastatistics {
                     }
                     // Calculates the cumulative sum.
                     cumulativeSum = dfa.getCumulativeSum(inputData)
-                    system.log("npts: " + core.length(cumulativeSum))
-                    system.log(JSON.stringify(cumulativeSum))
                     // Create the scale matrix.
                     rs = dfa.getRScale(minbox, maxbox, math.pow(2.0, 1.0/8.0))
                     // Calculates the DFA.
                     dfa = dfa.getDfa(cumulativeSum, nfit, rs, sw)
-                    dfaLog10 = dfa.toLog10(dfa)
-                    system.log(JSON.stringify(dfaLog10))
+                    system.log(JSON.stringify(dfa))
+                    //dfaLog10 = dfa.toLog10(dfa)
+                    n = dfa.length
+                    log10Data = []
+                    for (i = 1; i < dfa.length; i = i + 1) {
+                        if (core.type(dfa[i]) == "undefined") {
+                            continue
+                        }
+                        if (core.type(dfa[i]) == "number") {
+                            x = dfa[i]
+                            log10Data.push([x])
+                        } else {
+                            x = dfa[i, 0]
+                            y = dfa[i, 1]
+                            log10Data.push([x, y])
+                        }
+                    }
+                    system.log(JSON.stringify(log10Data))
                     //lsqr = this.getLsqr(dfaLog10)
                     // Saves the DFA data.
                     //if (outputFile == "") {

@@ -131,7 +131,6 @@ for (i = 0; i <= npts; i++) {
 for (i = 0; i <= nr; i++) {
     printf("%d: %ld\n", i, rs[i]);
 }
-exit(0);
     /* Measure the fluctuations of the detrended input data at each box size
        using the DFA algorithm; fill mse[] with these results. */
     dfa(seq, npts, nfit, rs, nr, sw);
@@ -225,10 +224,22 @@ void dfa(double *seq, long npts, int nfit, long *rs, int nr, int sw)
 
     for (i = 1; i <= nr; i++) {
         boxsize = rs[i];
-        if (sw) { inc = 1; stat = (int)(npts - boxsize + 1) * boxsize; }
-	else { inc = boxsize; stat = (int)(npts / boxsize) * boxsize; }
-        for (mse[i] = 0.0, j = 0; j <= npts - boxsize; j += inc)
+        if (sw) {
+            inc = 1;
+            stat = (int)(npts - boxsize + 1) * boxsize;
+        } else {
+            inc = boxsize;
+            stat = (int)(npts / boxsize) * boxsize;
+        }
+        printf("npts: %ld\n", npts);
+        printf("i: %ld\n", i);
+        printf("boxsize: %ld\n", boxsize);
+        printf("inc: %ld\n", inc);
+        printf("stat: %f\n", stat);
+        for (mse[i] = 0.0, j = 0; j <= npts - boxsize; j += inc) {
+            printf("j: %ld\n", j);
             mse[i] += polyfit(x, seq + j, boxsize, nfit);
+        }
         mse[i] /= stat;
     }
 }

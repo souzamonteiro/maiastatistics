@@ -76,34 +76,7 @@ namespace dfa {
         }
         return(returnObject)
     }
-
-    ///
-    /// Convert a series to log10.
-    /// @method toLog10
-    /// @memberof maiastatistics
-    /// @param {object}   data - The time series.
-    /// @return {object}  Returns the series in log10.
-    ///
-    function toLog10(data) {
-        n = data.length
-        log10Data = []
-        for (i = 0; i < data.length; i = i + 1) {
-            if (core.type(data[i]) == "undefined") {
-                continue
-            }
-            if (core.type(data[i]) == "number") {
-                x = data[i]
-                log10Data.push([x])
-            } else {
-                x = data[i, 0]
-                y = data[i, 1]
-                log10Data.push([x, y])
-            }
-            
-        }
-        return(log10Data)
-    }
-
+    
     ///
     /// Obtains the best curve that approximates a set of points, using the least squares method.
     /// References:
@@ -237,7 +210,7 @@ namespace dfa {
         // Determine how many scales are needed.
         // Does a binary OR with the result to convert to Integer.
         rslen = (math.log10(maxbox / minbox) / math.log10(boxratio) + 1.5) | 0
-        rs = core.matrix(0, 1, rslen)
+        rs = core.matrix(0, rslen)
         ir = 1
         rs[1] = minbox
         for (n = 2; n < rslen && rs[n - 1] < maxbox; ir = ir + 1) {
@@ -272,6 +245,8 @@ namespace dfa {
     /// @return {object}  Returns the mean squared fluctuations in mse.
     ///
     function getPolyfit(x, y, start, boxsize, nfit) {
+        local i
+        local j
         beta = core.matrix(0.0, nfit + 1)
         covar = core.matrix(0.0, nfit + 1, nfit + 1)
         covar0 = core.matrix(0.0, nfit + 1, nfit + 1)
@@ -416,7 +391,7 @@ namespace dfa {
             sw = 0
         }
 
-        npts = seq.length
+        npts = seq.length - 1
         nr = rs.length - 1
         mse = core.matrix(0.0, nr + 1)
         x = core.matrix(0.0, rs[nr] + 1, nfit + 1)

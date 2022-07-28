@@ -23,7 +23,7 @@
         "glob": "^7.1.6",
         "jsdoc": "^3.6.5",
         "jsdom": "^16.7.0",
-        "maiascript-cli": "^3.8.9"
+        "maiascript-cli": "^3.9.2"
     },
     "scripts": {
         "build": "./build.sh",
