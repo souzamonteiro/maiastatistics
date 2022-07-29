@@ -113,7 +113,51 @@ namespace maiastatistics {
     /// @return {object}  Returns the average and the deviation of the time series.
     ///
     function getAverage(data) {
-        return(dfa.getAverage(data))
+        average = 0
+        deviation = 0
+        minimum = data[0, 0]
+        maximum = data[0, 0]
+        sx = 0
+        sx2 = 0
+        n = data.length
+        for (i = 0; i < data.length; i = i + 1) {
+            if (core.type(data[i]) == "undefined") {
+                continue
+            }
+            if (core.type(data[i]) == "number") {
+                x = data[i]
+            } else {
+                x = data[i, 0]
+            }
+            if (core.type(x) == "number") {
+                if (core.type(minimum) == "undefined") {
+                    minimum = x
+                }
+                if (core.type(maximum) == "undefined") {
+                    maximum = x
+                }
+                if (minimum > x) {
+                    minimum = x
+                }
+                if (maximum < x) {
+                    maximum = x
+                }
+                sx = sx + x
+                sx2 = sx2 + x * x
+            }
+        }
+        average = sx / n
+        deviation = math.sqrt((sx2 - (sx * sx) / n) / (n - 1))
+        error = deviation / math.sqrt(n)
+        returnObject = {
+            "average": average,
+            "deviation": deviation,
+            "error": error,
+            "minimum": minimum,
+            "maximum": maximum,
+            "n": n
+        }
+        return(returnObject)
     }
 
     ///
@@ -227,7 +271,67 @@ namespace maiastatistics {
     /// @return {object}  Returns the best curve that approximates a set of points.
     ///
     function getLsqr(data, begin, end) {
-        return(dfa.getLsqr(data, begin, end))
+        dimData = core.dim(data)
+        dimI = dimData[0]
+        dimJ = dimData[1]
+        
+        if (core.type(begin) == "undefined") {
+            begin = 0
+        }
+        if (core.type(end) == "undefined") {
+            end = dimI - 1
+        }
+
+        x = 0.0
+        y = 0.0
+        sx = 0.0
+        sy = 0.0
+        sxy = 0.0
+        sx2 = 0.0
+        sy2 = 0.0
+        n = 0
+
+        // Read each value of the series and calculates
+        // a and b to f(a, b) = a + b * x.
+        for (i = begin; i <= end; i = i + 1) {
+            if (dimJ == 2) {
+                x = data[i, 0]
+                y = data[i, 1]
+            } else {
+                x = i
+                y = data[i, 0]
+            }
+            if (core.type(x) == "undefined") {
+                continue
+            }
+            if (core.type(y) == "undefined") {
+                continue
+            }
+            sx = sx + x
+            sy = sy + y
+            sxy = sxy + x * y
+            sx2 = sx2 + x * x
+            sy2 = sy2 + y * y
+            n = n + 1
+        }
+        
+        if (n == 0) {
+            return([0; 0; 0])
+        }
+
+        m1 = [n, sx; sx, sx2]
+        m2 = [sy; sxy]
+
+        //ab = m1^-1 * m2
+        ab = m2 / m1
+        r2 = ((sxy - sx * (sy / n)) ^ 2) / ((sx2 - (sx * sx) / n) * (sy2 - (sy * sy) / n))
+
+        returnObject = {
+            "a": ab[0, 0],
+            "b": ab[1, 0],
+            "r2": r2
+        }
+        return(returnObject)
     }
 
     /// Starts the application and processes the data passed as command line arguments.
@@ -579,41 +683,30 @@ namespace maiastatistics {
                     rs = dfa.getRScale(minbox, maxbox, math.pow(2.0, 1.0/8.0))
                     // Calculates the DFA.
                     dfa = dfa.getDfa(cumulativeSum, nfit, rs, sw)
-                    system.log(JSON.stringify(dfa))
-                    //dfaLog10 = dfa.toLog10(dfa)
                     n = dfa.length
                     log10Data = []
                     for (i = 1; i < dfa.length; i = i + 1) {
-                        if (core.type(dfa[i]) == "undefined") {
-                            continue
-                        }
-                        if (core.type(dfa[i]) == "number") {
-                            x = dfa[i]
-                            log10Data.push([x])
-                        } else {
-                            x = dfa[i, 0]
-                            y = dfa[i, 1]
-                            log10Data.push([x, y])
-                        }
+                        x = math.log10(rs[i])
+                        y = math.log10(dfa[i]) / 2.0
+                        log10Data.push([x, y])
                     }
-                    system.log(JSON.stringify(log10Data))
-                    //lsqr = this.getLsqr(dfaLog10)
+                    lsqr = this.getLsqr(log10Data)
                     // Saves the DFA data.
-                    //if (outputFile == "") {
-                    //    outputFile = fileName + "-dfa." + fileExtension
-                    //}
-                    //fileContents = system.createCSV(dfaLog10, separator)
-                    //fs.writeFileSync(outputFile, fileContents)
+                    if (outputFile == "") {
+                        outputFile = fileName + "-dfa." + fileExtension
+                    }
+                    fileContents = system.createCSV(log10Data, separator)
+                    fs.writeFileSync(outputFile, fileContents)
                     // Saves the report file.
-                    //reportFileContents = ""
-                    //reportFileContents = reportFileContents + "y = a + b * x\n"
-                    // reportFileContents = reportFileContents + "a: " + lsqr[0, 0] + "\n"
-                    // reportFileContents = reportFileContents + "b: " + lsqr[1, 0] + "\n"
-                    // reportFileContents = reportFileContents + "r2: " + lsqr[2, 0] + "\n"
-                    //if (reportFile == "") {
-                    //    reportFile = fileName + "-report-lsqr.txt"
-                    //}
-                    //fs.writeFileSync(reportFile, reportFileContents)
+                    reportFileContents = ""
+                    reportFileContents = reportFileContents + "y = a + b * x\n"
+                    reportFileContents = reportFileContents + "a: " + lsqr.a + "\n"
+                    reportFileContents = reportFileContents + "b: " + lsqr.b + "\n"
+                    reportFileContents = reportFileContents + "r2: " + lsqr.r2 + "\n"
+                    if (reportFile == "") {
+                        reportFile = fileName + "-report-lsqr.txt"
+                    }
+                    fs.writeFileSync(reportFile, reportFileContents)
                 } else {
                     system.log(maiastatistics.appTitle + " Command Line Interface (CLI)")
                     system.log("Usage: " + maiastatistics.appName + " [options] [input file] [--] [arguments]")

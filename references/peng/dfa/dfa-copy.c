@@ -239,6 +239,7 @@ void dfa(double *seq, long npts, int nfit, long *rs, int nr, int sw)
         for (mse[i] = 0.0, j = 0; j <= npts - boxsize; j += inc) {
             printf("j: %ld\n", j);
             mse[i] += polyfit(x, seq + j, boxsize, nfit);
+            printf("mse[i]: %f\n", mse[i]);
         }
         mse[i] /= stat;
     }
