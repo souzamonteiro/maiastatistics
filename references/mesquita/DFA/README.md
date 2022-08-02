@@ -1,2 +1,0 @@
-# DFA
-Contains the Detrended Fluctuation Analysis (DFA), Detrended Cross-Correlation Analysis (DCCA), Detrended Cross-Correlation Coefficient (rhoDCCA), Delta Amplitude Detrended Cross-Correlation Coefficient (DeltarhoDCCA), log amplitude Detrended Fluctuation Analysis (DeltalogDFA), two DFA automatic methods for identification of crossover points and a Deltalog automatic method for identification of reference channels.
