@@ -383,10 +383,15 @@ namespace maiastatistics {
             calculatePearson = false
             doLSQR = false
             calculateDFA = false
+            calculateDCCA = false
             minbox = 0
             maxbox = 0
+            rsmode = "peng"
+            mavg = false
             nfit = 2
             sw = 0
+            inputFile1 = ""
+            inputFile2 = ""
             // Get command line arguments.
             if (system.argc > 1) {
                 i = 1
@@ -424,8 +429,13 @@ namespace maiastatistics {
                         system.log("       --dfa                Calculates the DFA.")
                         system.log("       --minbox             The minimum box size for DFA.")
                         system.log("       --maxbox             The maximum box size for DFA.")
+                        system.log("       --rsmode             The algorithm for scaling for DFA.")
+                        system.log("       --mavg               Remove the average from the series for DFA.")
                         system.log("       --nfit               The order of the regression fit for DFA.")
                         system.log("       --sw                 The sliding window mode for DFA.")
+                        system.log("       --dcca               Calculates the DCCA.")
+                        system.log("       --i1                 Input file name 1 for DCCA and rhoDCCA.")
+                        system.log("       --i2                 Input file name 2 for DCCA and rhoDCCA.")
                         process.exit(0)
                     } elseif (system.argv[i] == "-i") {
                         i = i + 1
@@ -505,11 +515,24 @@ namespace maiastatistics {
                     } elseif (system.argv[i] == "--maxbox") {
                         i = i + 1
                         maxbox = core.toNumber(system.argv[i])
+                    } elseif (system.argv[i] == "--rsmode") {
+                        i = i + 1
+                        rsmode = system.argv[i]
+                    } elseif (system.argv[i] == "--mavg") {
+                        mavg = true
                     } elseif (system.argv[i] == "--nfit") {
                         i = i + 1
                         nfit = core.toNumber(system.argv[i])
                     } elseif (system.argv[i] == "--sw") {
                         sw = 1
+                    } elseif (system.argv[i] == "--dcca") {
+                        calculateDCCA = true
+                    } elseif (system.argv[i] == "--i1") {
+                        i = i + 1
+                        inputFile1 = system.argv[i]
+                    } elseif (system.argv[i] == "--i2") {
+                        i = i + 1
+                        inputFile2 = system.argv[i]
                     } else {
                         inputFile = system.argv[i]
                         break
@@ -678,18 +701,21 @@ namespace maiastatistics {
                         }
                     }
                     // Calculates the cumulative sum.
-                    cumulativeSum = dfa.getCumulativeSum(inputData)
+                    cumulativeSum = dfa.getCumulativeSum(inputData, mavg)
                     // Create the scale matrix.
-                    rs = dfa.getRScale(minbox, maxbox, math.pow(2.0, 1.0/8.0))
+                    rs = dfa.getRScale(minbox, maxbox, math.pow(2.0, 1.0/8.0), rsmode)
                     // Calculates the DFA.
-                    dfa = dfa.getDfa(cumulativeSum, nfit, rs, sw)
-                    n = dfa.length
+                    dfaObject = dfa.getDfa(cumulativeSum, nfit, rs, sw)
+                    mse = dfaObject.mse
+                    coefficient = dfaObject.coefficient
+                    n = rs.length
                     dfaData = []
                     dfaLog10Data = []
-                    for (i = 1; i < dfa.length; i = i + 1) {
+                    dfaData.push(["scale", "mse"])
+                    for (i = 1; i < n; i = i + 1) {
                         x = math.log10(rs[i])
-                        y = math.log10(dfa[i]) / 2.0
-                        dfaData.push([rs[i], dfa[i]])
+                        y = math.log10(mse[i]) / 2.0
+                        dfaData.push([rs[i], math.sqrt(mse[i])])
                         dfaLog10Data.push([x, y])
                     }
                     lsqr = this.getLsqr(dfaLog10Data)
@@ -697,7 +723,7 @@ namespace maiastatistics {
                     outputFile = fileName + "-dfa." + fileExtension
                     fileContents = system.createCSV(dfaData, separator)
                     fs.writeFileSync(outputFile, fileContents)
-                    // Saves the DFA in log x log data.
+                    // Saves the DFA data in log x log.
                     outputFile = fileName + "-dfa-log10." + fileExtension
                     fileContents = system.createCSV(dfaLog10Data, separator)
                     fs.writeFileSync(outputFile, fileContents)
@@ -711,6 +737,77 @@ namespace maiastatistics {
                         reportFile = fileName + "-report-lsqr.txt"
                     }
                     fs.writeFileSync(reportFile, reportFileContents)
+                } elseif (calculateDCCA) {
+                    // Get the file 1 without extension.
+                    fileName1 = inputFile1.split(".")
+                    fileName1 = fileName1.shift()
+                    // Get the file name extension.
+                    fileExtension1 = inputFile1.split(".")
+                    fileExtension1 = fileExtension1.pop()
+                    // Get the file 2 without extension.
+                    fileName2 = inputFile2.split(".")
+                    fileName2 = fileName2.shift()
+                    // Get the file name extension.
+                    fileExtension2 = inputFile2.split(".")
+                    fileExtension2 = fileExtension2.pop()
+                    inputData1 = system.loadCSV(inputFile1, linesToSkip, separator, true, true)
+                    inputData2 = system.loadCSV(inputFile2, linesToSkip, separator, true, true)
+                    // Define the boxes sizes.
+                    npts = inputData1.length
+                    if (minbox < 2 * nfit) {
+                        minbox = 2 * nfit
+                    }
+                    if (maxbox == 0 || maxbox > math.round(npts / 4)) {
+                        maxbox = math.round(npts / 4)
+                    }
+                    if (minbox > maxbox) {
+                        temp = minbox
+                        minbox = maxbox
+                        maxbox = temp
+                        if (minbox < 2 * nfit) {
+                            minbox = 2 * nfit
+                        }
+                    }
+                    // Calculates the cumulative sum.
+                    cumulativeSum1 = dfa.getCumulativeSum(inputData1, mavg)
+                    cumulativeSum2 = dfa.getCumulativeSum(inputData2, mavg)
+                    // Create the scale matrix.
+                    rs = dfa.getRScale(minbox, maxbox, math.pow(2.0, 1.0/8.0), rsmode)
+                    // Calculates the DFA.
+                    sw = 0
+                    dfaObject1 = dfa.getDfa(cumulativeSum1, nfit, rs, sw)
+                    dfaObject2 = dfa.getDfa(cumulativeSum2, nfit, rs, sw)
+                    mse1 = dfaObject1.mse
+                    mse2 = dfaObject2.mse
+                    coefficient1 = dfaObject1.coefficient
+                    coefficient2 = dfaObject2.coefficient
+                    n = rs.length
+                    dfaData1 = []
+                    dfaData2 = []
+                    dfaData1.push(["scale", "mse"])
+                    dfaData2.push(["scale", "mse"])
+                    for (i = 1; i < n; i = i + 1) {
+                        dfaData1.push([rs[i], math.sqrt(mse1[i])])
+                        dfaData2.push([rs[i], math.sqrt(mse2[i])])
+                    }
+                    dccaData = []
+                    dccaData.push(["scale", "dfa1", "dfa2", "dcca"])
+                    for (i = 1; i < n; i = i + 1) {
+                        dccaData.push([rs[i], dfaData1[i, 1], dfaData2[i, 1]])
+                    }
+                    // Saves the DFA data.
+                    outputFile1 = fileName1 + "-dfa." + fileExtension1
+                    fileContents1 = system.createCSV(dfaData1, separator)
+                    fs.writeFileSync(outputFile1, fileContents1)
+                    outputFile2 = fileName2 + "-dfa." + fileExtension2
+                    fileContents2 = system.createCSV(dfaData2, separator)
+                    fs.writeFileSync(outputFile2, fileContents2)
+                    // Saves the DCCA data.
+                    system.log(fileName1)
+                    system.log(fileName2)
+                    system.log(fileExtension1)
+                    fileContents3 = system.createCSV(dccaData, separator)
+                    fs.writeFileSync(outputFile, fileContents3)
                 } else {
                     system.log(maiastatistics.appTitle + " Command Line Interface (CLI)")
                     system.log("Usage: " + maiastatistics.appName + " [options] [input file] [--] [arguments]")

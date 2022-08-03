@@ -120,35 +120,60 @@ namespace dfa {
     /// Allocates and fills rs[], the array of box sizes used by getDfa() below.
     /// The box sizes range from (exactly) minbox to (approximately) maxbox,
     /// and are arranged in a geometric series such that the ratio between
-    /// consecutive box sizes is (approximately) boxratio. The return value is
-    /// the number of box sizes in rs[].
+    /// consecutive box sizes is (approximately) boxratio (Peng algorithm).
+    /// The return value is box sizes array.
     /// @method getRScale
     /// @memberof dfa
     /// @param {number}   minbox - The minimum box size.
     /// @param {number}   maxbox - The maximum box size.
     /// @param {number}   boxratio - The ratio between successive box sizes.
-    /// @return {number}  Returns the number of box sizes in rs[].
+    /// @param {number}   alg - The algorithm for scaling.
+    /// @return {object}  Returns the box sizes array.
     ///
-    function getRScale(minbox, maxbox, boxratio) {
-        // Determine how many scales are needed.
-        // Does a binary OR with the result to convert to Integer.
-        rslen = (math.log10(maxbox / minbox) / math.log10(boxratio) + 1.5) | 0
-        rs = core.matrix(0, rslen)
-        ir = 1
-        rs[1] = minbox
-        for (n = 2; n < rslen && rs[n - 1] < maxbox; ir = ir + 1) {
+    function getRScale(minbox, maxbox, boxratio, mode) {
+        if (core.type(mode) == "undefined") {
+            mode = "peng"
+        }
+        rs = []
+        if (mode == "peng") {
+            // Determine how many scales are needed.
             // Does a binary OR with the result to convert to Integer.
-            if ((rw = (minbox * math.pow(boxratio, ir) + 0.5) | 0) > rs[n - 1]) {
-                rs[n] = rw
-                n = n + 1
+            rslen = (math.log10(maxbox / minbox) / math.log10(boxratio) + 1.5) | 0
+            rs = core.matrix(0, rslen)
+            ir = 1
+            rs[1] = minbox
+            for (n = 2; n < rslen && rs[n - 1] < maxbox; ir = ir + 1) {
+                // Does a binary OR with the result to convert to Integer.
+                if ((rw = (minbox * math.pow(boxratio, ir) + 0.5) | 0) > rs[n - 1]) {
+                    rs[n] = rw
+                    n = n + 1
+                }
             }
-        }
-        // It guarantees that exactly the number of values requested will be returned.
-        n = n - 1
-        if (rs[n] > maxbox) {
+            // It guarantees that exactly the number of values requested will be returned.
             n = n - 1
+            if (rs[n] > maxbox) {
+                n = n - 1
+            }
+            rs = rs.slice(0, n)
+        } elseif (mode == "mesquita") {
+            rslen = (maxbox - minbox) / boxratio + 1
+            rs = core.matrix(0, rslen)
+            rs[1] = minbox
+            
+            m = 1
+            next = 0
+            for(n = 1; n < rslen; n = n + 1) {
+                while (next < maxbox) {
+                    next = rs[1]
+                    m = m + 1
+                    n = n + 1
+                    rs[n] = math.ceil(boxratio * rs[n - 1])
+                    next = rs[n] + 4
+                }
+            }
+            m = m + 1
+            rs = rs.slice(0, m)
         }
-        rs = rs.slice(0, n)
         return(rs)
     }
 
@@ -157,7 +182,8 @@ namespace dfa {
     /// (Press, Teukolsky, Vetterling, and Flannery; Cambridge U. Press, 1992).  It
     /// fits a polynomial of degree (nfit-1) to a set of boxsize points given by
     /// x[1...boxsize,2] and y[1...boxsize].  The return value is the sum of the
-    /// squared errors (chisq) between the (x,y) pairs and the fitted polynomial.
+    /// squared errors (chisq) between the (x,y) pairs and the fitted polynomial
+    /// and the fitness coefficients.
     /// @method getPolyfit
     /// @memberof dfa
     /// @param {object}   x - Array containing the values of X.
@@ -293,7 +319,11 @@ namespace dfa {
                 chisq = chisq + temp * temp
             }
         }
-        return(chisq)
+        returnObject = {
+            "coefficient": beta,
+            "rss": chisq
+        }
+        return(returnObject)
     }
 
     ///
@@ -317,6 +347,7 @@ namespace dfa {
         npts = seq.length - 1
         nr = rs.length - 1
         mse = core.matrix(0.0, nr + 1)
+        coefficient = core.matrix(0.0, nr + 1)
         x = core.matrix(0.0, rs[nr] + 1, nfit + 1)
         for (i = 1; i <= rs[nr]; i = i + 1) {
             x[i, 1] = 1.0
@@ -338,10 +369,17 @@ namespace dfa {
             }
             mse[i] = 0.0
             for (j = 0; j <= npts - boxsize; j = j + inc) {
-                mse[i] = mse[i] + this.getPolyfit(x, seq, j, boxsize, nfit)
+                fit = this.getPolyfit(x, seq, j, boxsize, nfit)
+                mse[i] = mse[i] + fit.rss
+                coefficient[i] = fit.coefficient
+                //mse[i] = mse[i] + this.getPolyfit(x, seq, j, boxsize, nfit)
             }
             mse[i] = mse[i] / stat
         }
-        return(mse)
+        returnObject = {
+            "coefficient": coefficient,
+            "mse": mse
+        }
+        return(returnObject)
     }
 }

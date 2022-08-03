@@ -124,20 +124,26 @@ int main(int argc, char **argv)
 
     /* Allocate memory for dfa() and the functions it calls. */
     setup();
-printf("nfit: %d\n", nfit);
-for (i = 0; i <= npts; i++) {
-    printf("%d: %f\n", i, seq[i]);
-}
-for (i = 0; i <= nr; i++) {
-    printf("%d: %ld\n", i, rs[i]);
-}
+// printf("nfit: %d\n", nfit);
+// for (i = 0; i <= npts; i++) {
+//     printf("%d: %f\n", i, seq[i]);
+// }
+// for (i = 0; i <= nr; i++) {
+//     printf("%d: %ld\n", i, rs[i]);
+// }
     /* Measure the fluctuations of the detrended input data at each box size
        using the DFA algorithm; fill mse[] with these results. */
+    //long rs[] = {0, 4, 5, 7, 9, 11, 13, 16, 20, 24, 28, 33, 38, 45, 52, 60, 69, 80, 91, 104, 119, 135, 154, 174, 198, 224, 252, 285};
+    //nr = 27;
     dfa(seq, npts, nfit, rs, nr, sw);
 
     /* Output the results. */
-    for (i = 1; i <= nr; i++)
-	printf("%g %g\n", log10((double)rs[i]), log10(mse[i])/2.0);
+    for (i = 1; i <= nr; i++) {
+	    printf("%g %g\n", log10((double)rs[i]), log10(mse[i])/2.0);
+    }
+    for (i = 1; i <= nr; i++) {
+	    printf("%ld %g %g %g\n", rs[i], mse[i], pow(rs[i], mse[i]), sqrt(mse[i]));
+    }
 
     /* Release allocated memory. */
     cleanup();
@@ -200,7 +206,7 @@ int rscale(long minbox, long maxbox, double boxratio)
        situations. */
     rs = lvector(1, rslen);
     for (ir = 1, n = 2, rs[1] = minbox; n <= rslen && rs[n-1] < maxbox; ir++)
-      if ((rw = minbox * pow(boxratio, ir) + 0.5) > rs[n-1])
+        if ((rw = minbox * pow(boxratio, ir) + 0.5) > rs[n-1])
             rs[n++] = rw;
     if (rs[--n] > maxbox) --n;
     return (n);
@@ -231,15 +237,15 @@ void dfa(double *seq, long npts, int nfit, long *rs, int nr, int sw)
             inc = boxsize;
             stat = (int)(npts / boxsize) * boxsize;
         }
-        printf("npts: %ld\n", npts);
-        printf("i: %ld\n", i);
-        printf("boxsize: %ld\n", boxsize);
-        printf("inc: %ld\n", inc);
-        printf("stat: %f\n", stat);
+        // printf("npts: %ld\n", npts);
+        // printf("i: %ld\n", i);
+        // printf("boxsize: %ld\n", boxsize);
+        // printf("inc: %ld\n", inc);
+        // printf("stat: %f\n", stat);
         for (mse[i] = 0.0, j = 0; j <= npts - boxsize; j += inc) {
-            printf("j: %ld\n", j);
+            //printf("j: %ld\n", j);
             mse[i] += polyfit(x, seq + j, boxsize, nfit);
-            printf("mse[i]: %f\n", mse[i]);
+            //printf("mse[i]: %f\n", mse[i]);
         }
         mse[i] /= stat;
     }
@@ -256,21 +262,21 @@ void setup()
     long i;
     int j, k;
 
-    printf("Alocate beta...\n");
+    //printf("Alocate beta...\n");
     beta = vector(1, nfit);
-    printf("Alocate covar...\n");
+    //printf("Alocate covar...\n");
     covar = matrix(1, nfit, 1, nfit);
-    printf("Alocate covar0...\n");
+    //printf("Alocate covar0...\n");
     covar0 = matrix(1, nfit, 1, nfit);
-    printf("Alocate indxc...\n");
+    //printf("Alocate indxc...\n");
     indxc = ivector(1, nfit);
-    printf("Alocate indxr...\n");
+    //printf("Alocate indxr...\n");
     indxr = ivector(1, nfit);
-    printf("Alocate ipiv...\n");
+    //printf("Alocate ipiv...\n");
     ipiv = ivector(1, nfit);
-    printf("Alocate mse...\n");
+    //printf("Alocate mse...\n");
     mse = vector(1, nr);
-    printf("Alocate X...\n");
+    //printf("Alocate X...\n");
     x = matrix(1, rs[nr], 1, nfit);
     for (i = 1; i <= rs[nr]; i++) {
 	x[i][1] = 1.0;
@@ -278,10 +284,10 @@ void setup()
 	for (j = 3; j <= nfit; j++) {
 	    x[i][j] = x[i][j-1] * i;
     }
-    printf("x[%ld][%d]: %f, ", i, 0, x[i][0]);
-    printf("x[%ld][%d]: %f, ", i, 1, x[i][1]);
-    printf("x[%ld][%d]: %f, ", i, 2, x[i][2]);
-    printf("x[%ld][%d]: %f\n", i, j, x[i][j]);
+    //printf("x[%ld][%d]: %f, ", i, 0, x[i][0]);
+    //printf("x[%ld][%d]: %f, ", i, 1, x[i][1]);
+    //printf("x[%ld][%d]: %f, ", i, 2, x[i][2]);
+    //printf("x[%ld][%d]: %f\n", i, j, x[i][j]);
     }
 }
 
@@ -437,7 +443,7 @@ void error(char error_text[])
 double *vector(long nl, long nh)
 /* allocate a double vector with subscript range v[nl..nh] */
 {
-printf("size(nh-nl+2): %ld\n", nh-nl+2);
+//printf("size(nh-nl+2): %ld\n", nh-nl+2);
     double *v = (double *)malloc((size_t)((nh-nl+2) * sizeof(double)));
     if (v == NULL) error("allocation failure in vector()");
     return (v-nl+1);
@@ -446,7 +452,7 @@ printf("size(nh-nl+2): %ld\n", nh-nl+2);
 int *ivector(long nl, long nh)
 /* allocate an int vector with subscript range v[nl..nh] */
 {
-printf("size(nh-nl+2): %ld\n", nh-nl+2);
+//printf("size(nh-nl+2): %ld\n", nh-nl+2);
     int *v = (int *)malloc((size_t)((nh-nl+2) * sizeof(int)));
     if (v == NULL) error("allocation failure in ivector()");
     return (v-nl+1);
@@ -455,7 +461,7 @@ printf("size(nh-nl+2): %ld\n", nh-nl+2);
 long *lvector(long nl, long nh)
 /* allocate a long int vector with subscript range v[nl..nh] */
 {
-printf("size(nh-nl+2): %ld\n", nh-nl+2);
+//printf("size(nh-nl+2): %ld\n", nh-nl+2);
     long *v = (long *)malloc((size_t)((nh-nl+2) * sizeof(long)));
     if (v == NULL) error("allocation failure in lvector()");
     return (v-nl+1);
@@ -466,7 +472,7 @@ double **matrix(long nrl, long nrh, long ncl, long nch)
 {
     long i, nrow = nrh-nrl+1, ncol = nch-ncl+1;
     double **m;
-printf("size(nrow + 1): %ld, size(ncol + 1): %ld\n", nrow + 1, ncol + 1);
+//printf("size(nrow + 1): %ld, size(ncol + 1): %ld\n", nrow + 1, ncol + 1);
     /* allocate pointers to rows */
     m = (double **) malloc((size_t)((nrow+1) * sizeof(double*)));
     if (!m) error("allocation failure 1 in matrix()");
