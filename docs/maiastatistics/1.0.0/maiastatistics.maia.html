@@ -362,6 +362,51 @@ namespace maiastatistics {
         return(returnObject)
     }
 
+    ///
+    /// Performs the detrended fluctuation analysis.
+    /// @method getDfa
+    /// @memberof dfa
+    /// @param {object}   seq - Input data array.
+    /// @param {number}   nfit - Order of detrending (2: linear, 3: quadratic, etc).
+    /// @param {object}   rs - Array of box sizes (uniformly distributed on log scale).
+    /// @param {number}   sw - Mode (0: non-overlapping windows, 1: sliding window).
+    /// @return {object}  Returns the mean squared fluctuations in mse.
+    ///
+    function getDfa(seq, nfit, rs, sw) {
+        if (core.type(nfit) == "undefined") {
+            nfit = 2
+        }
+        if (core.type(sw) == "undefined") {
+            sw = 0
+        }
+        
+        // Calculates the DFA.
+        dfaObject = dfa.getDfa(seq, nfit, rs, sw)
+        mse = dfaObject.mse
+        coefficient = dfaObject.coefficient
+
+        n = rs.length
+        dfaData = []
+        dfaLog10Data = []
+        dfaData.push(["scale", "dfa", "log10(scale)", "log10(dfa)"])
+        for (i = 1; i &lt; n; i = i + 1) {
+            x = math.log10(rs[i])
+            y = math.log10(mse[i]) / 2.0
+            dfaData.push([rs[i], math.sqrt(mse[i]), x, y])
+            dfaLog10Data.push([x, y])
+        }
+
+        // Calculates the least squares fit.
+        lsqr = this.getLsqr(dfaLog10Data)
+
+        returnObject = {
+            "coefficient": coefficient,
+            "dfa": dfaData,
+            "lsqr": lsqr
+        }
+        return(returnObject)
+    }
+
     /// Starts the application and processes the data passed as command line arguments.
     /// @method run
     /// @memberof maiastatistics
@@ -591,8 +636,10 @@ namespace maiastatistics {
                     if (outputFile == "") {
                         outputFile = fileName + "-replaced." + fileExtension
                     }
+
                     inputData = system.loadCSV(inputFile, linesToSkip, separator, true, false)
                     outputData = this.replacePattern(inputData, patternString, replacementString, true)
+
                     fileContents = system.createCSV(outputData, separator)
                     fs.writeFileSync(outputFile, fileContents)
                 } elseif (splitFile) {
@@ -602,8 +649,10 @@ namespace maiastatistics {
                     // Get the file name extension.
                     fileExtension = inputFile.split(".")
                     fileExtension = fileExtension.pop()
+
                     inputData = system.loadCSV(inputFile, linesToSkip, separator, true, false)
                     outputData = this.splitData(inputData, nFirst)
+
                     outputFile1 = fileName + "-" + core.toString(outputData.part1.length) + "." + fileExtension
                     outputFile2 = fileName + "-" + core.toString(outputData.part2.length) + "." + fileExtension
                     fileContents1 = system.createCSV(outputData.part1, separator)
@@ -620,11 +669,14 @@ namespace maiastatistics {
                     if (outputFile == "") {
                         outputFile = fileName + "-normalized." + fileExtension
                     }
+
                     inputData = system.loadCSV(inputFile, linesToSkip, separator, true, true)
                     avgData = this.getAverage(inputData)
                     outputData = this.normalize(inputData, avgData.minimum, avgData.maximum)
+
                     fileContents = system.createCSV(outputData, separator)
                     fs.writeFileSync(outputFile, fileContents)
+
                     // Saves the report file.
                     reportFileContents = ""
                     reportFileContents = reportFileContents + "Average: " + core.toString(avgData.average) + "\n"
@@ -651,8 +703,10 @@ namespace maiastatistics {
                     if (outputFile == "") {
                         outputFile = fileName + "-denormalized." + fileExtension
                     }
+
                     inputData = system.loadCSV(inputFile, linesToSkip, separator, true, true)
                     outputData = this.denormalize(inputData, minimum, maximum)
+
                     fileContents = system.createCSV(outputData, separator)
                     fs.writeFileSync(outputFile, fileContents)
                 } elseif (nextStep) {
@@ -665,8 +719,10 @@ namespace maiastatistics {
                     if (outputFile == "") {
                         outputFile = fileName + "-steps." + fileExtension
                     }
+
                     inputData = system.loadCSV(inputFile, linesToSkip, separator, true, true)
                     outputData = this.getNextSteps(inputData, steps)
+
                     fileContents = system.createCSV(outputData, separator)
                     fs.writeFileSync(outputFile, fileContents)
                 } elseif (calculatePearson) {
@@ -676,8 +732,10 @@ namespace maiastatistics {
                     // Get the file name extension.
                     fileExtension = inputFile.split(".")
                     fileExtension = fileExtension.pop()
+
                     inputData = system.loadCSV(inputFile, linesToSkip, separator, true, true)
                     pearsonCoefficient = this.getPearson(inputData)
+
                     // Saves the report file.
                     reportFileContents = ""
                     reportFileContents = reportFileContents + "Pearson coefficient: " + pearsonCoefficient + "\n"
@@ -692,8 +750,12 @@ namespace maiastatistics {
                     // Get the file name extension.
                     fileExtension = inputFile.split(".")
                     fileExtension = fileExtension.pop()
+
                     inputData = system.loadCSV(inputFile, linesToSkip, separator, true, true)
+
+                    // Calculates the least squares fit.
                     lsqr = this.getLsqr(inputData)
+
                     // Saves the report file.
                     reportFileContents = ""
                     reportFileContents = reportFileContents + "y = a + b * x\n"
@@ -711,7 +773,9 @@ namespace maiastatistics {
                     // Get the file name extension.
                     fileExtension = inputFile.split(".")
                     fileExtension = fileExtension.pop()
+
                     inputData = system.loadCSV(inputFile, linesToSkip, separator, true, true)
+
                     // Define the boxes sizes.
                     npts = inputData.length
                     if (minbox &lt; 2 * nfit) {
@@ -728,33 +792,24 @@ namespace maiastatistics {
                             minbox = 2 * nfit
                         }
                     }
-                    // Calculates the cumulative sum.
-                    cumulativeSum = dfa.getCumulativeSum(inputData, mavg)
+
                     // Create the scale matrix.
                     rs = dfa.getRScale(minbox, maxbox, math.pow(2.0, 1.0/8.0), rsmode)
+
+                    // Calculates the cumulative sum.
+                    cumulativeSum = dfa.getCumulativeSum(inputData, mavg)
+
                     // Calculates the DFA.
-                    dfaObject = dfa.getDfa(cumulativeSum, nfit, rs, sw)
-                    mse = dfaObject.mse
+                    dfaObject = this.getDfa(cumulativeSum, nfit, rs, sw)
+                    dfaData = dfaObject.dfa
                     coefficient = dfaObject.coefficient
-                    n = rs.length
-                    dfaData = []
-                    dfaLog10Data = []
-                    dfaData.push(["scale", "mse"])
-                    for (i = 1; i &lt; n; i = i + 1) {
-                        x = math.log10(rs[i])
-                        y = math.log10(mse[i]) / 2.0
-                        dfaData.push([rs[i], math.sqrt(mse[i])])
-                        dfaLog10Data.push([x, y])
-                    }
-                    lsqr = this.getLsqr(dfaLog10Data)
+                    lsqr = dfaObject.lsqr
+
                     // Saves the DFA data.
                     outputFile = fileName + "-dfa." + fileExtension
                     fileContents = system.createCSV(dfaData, separator)
                     fs.writeFileSync(outputFile, fileContents)
-                    // Saves the DFA data in log x log.
-                    outputFile = fileName + "-dfa-log10." + fileExtension
-                    fileContents = system.createCSV(dfaLog10Data, separator)
-                    fs.writeFileSync(outputFile, fileContents)
+
                     // Saves the report file.
                     reportFileContents = ""
                     reportFileContents = reportFileContents + "y = a + b * x\n"
@@ -796,44 +851,43 @@ namespace maiastatistics {
                             minbox = 2 * nfit
                         }
                     }
+
+                    // Create the scale matrix.
+                    rs = dfa.getRScale(minbox, maxbox, math.pow(2.0, 1.0/8.0), rsmode)
+                    
                     // Calculates the cumulative sum.
                     cumulativeSum1 = dfa.getCumulativeSum(inputData1, mavg)
                     cumulativeSum2 = dfa.getCumulativeSum(inputData2, mavg)
-                    // Create the scale matrix.
-                    rs = dfa.getRScale(minbox, maxbox, math.pow(2.0, 1.0/8.0), rsmode)
-                    // Calculates the DFA.
-                    sw = 0
-                    dfaObject1 = dfa.getDfa(cumulativeSum1, nfit, rs, sw)
-                    dfaObject2 = dfa.getDfa(cumulativeSum2, nfit, rs, sw)
-                    mse1 = dfaObject1.mse
-                    mse2 = dfaObject2.mse
+                    
+                    // Calculates the DFA 1.
+                    dfaObject1 = this.getDfa(cumulativeSum1, nfit, rs, sw)
+                    dfaData1 = dfaObject1.dfa
                     coefficient1 = dfaObject1.coefficient
+                    lsqr1 = dfaObject1.lsqr
+
+                    // Calculates the DFA 2.
+                    dfaObject2 = this.getDfa(cumulativeSum2, nfit, rs, sw)
+                    dfaData2 = dfaObject2.dfa
                     coefficient2 = dfaObject2.coefficient
-                    n = rs.length
-                    dfaData1 = []
-                    dfaData2 = []
-                    dfaData1.push(["scale", "mse"])
-                    dfaData2.push(["scale", "mse"])
-                    for (i = 1; i &lt; n; i = i + 1) {
-                        dfaData1.push([rs[i], math.sqrt(mse1[i])])
-                        dfaData2.push([rs[i], math.sqrt(mse2[i])])
-                    }
+                    lsqr2 = dfaObject2.lsqr
+
+                    // Calculates the DCCA.
                     dccaData = []
                     dccaData.push(["scale", "dfa1", "dfa2", "dcca"])
                     for (i = 1; i &lt; n; i = i + 1) {
                         dccaData.push([rs[i], dfaData1[i, 1], dfaData2[i, 1]])
                     }
+                    
                     // Saves the DFA data.
                     outputFile1 = fileName1 + "-dfa." + fileExtension1
                     fileContents1 = system.createCSV(dfaData1, separator)
                     fs.writeFileSync(outputFile1, fileContents1)
+
                     outputFile2 = fileName2 + "-dfa." + fileExtension2
                     fileContents2 = system.createCSV(dfaData2, separator)
                     fs.writeFileSync(outputFile2, fileContents2)
+
                     // Saves the DCCA data.
-                    system.log(fileName1)
-                    system.log(fileName2)
-                    system.log(fileExtension1)
                     fileContents3 = system.createCSV(dccaData, separator)
                     fs.writeFileSync(outputFile, fileContents3)
                 } else {
@@ -867,7 +921,7 @@ if (core.type(process) != "undefined") {
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.10</a> on Wed Aug 03 2022 21:43:13 GMT+0000 (Coordinated Universal Time)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.10</a> on Thu Aug 04 2022 14:01:51 GMT+0000 (Coordinated Universal Time)
 </footer>
 
 <script> prettyPrint(); </script>
