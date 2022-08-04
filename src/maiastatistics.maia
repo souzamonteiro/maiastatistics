@@ -337,7 +337,7 @@ namespace maiastatistics {
     ///
     /// Performs the detrended fluctuation analysis.
     /// @method getDfa
-    /// @memberof dfa
+    /// @memberof maiastatistics
     /// @param {object}   seq - Input data array.
     /// @param {number}   nfit - Order of detrending (2: linear, 3: quadratic, etc).
     /// @param {object}   rs - Array of box sizes (uniformly distributed on log scale).
@@ -374,6 +374,54 @@ namespace maiastatistics {
             "lsqr": lsqr
         }
         return(returnObject)
+    }
+
+    ///
+    /// Performs the detrended cross-Correlation analysis.
+    /// @method getDcca
+    /// @memberof maiastatistics
+    /// @param {object}   seq1 - Input data array 1.
+    /// @param {object}   seq2 - Input data array 2.
+    /// @param {number}   nfit - Order of detrending (2: linear, 3: quadratic, etc).
+    /// @param {object}   rs - Array of box sizes (uniformly distributed on log scale).
+    /// @return {object}  Returns the detrended cross-Correlation analysis values.
+    ///
+    function getDcca(seq1, seq2, nfit, rs) {
+        if (core.type(nfit) == "undefined") {
+            nfit = 2
+        }
+
+        // Calculates the DFA.
+        dcca = dfa.getDcca(seq1, seq2, nfit, rs)
+
+        n = rs.length
+        dccaData = []
+        dccaData.push(["scale", "dcca"])
+        for (i = 1; i < n; i = i + 1) {
+            dccaData.push([rs[i], dcca[i]])
+        }
+        return(dccaData)
+    }
+
+    ///
+    /// Performs the detrended cross-Correlation analysis.
+    /// @method getRhoDcca
+    /// @memberof maiastatistics
+    /// @param {object}   dfa1 - DFA array of first series.
+    /// @param {object}   dfa2 - DFA array of second series.
+    /// @param {object}   dcca - DCCA array for the two series.
+    /// @return {object}  Returns the detrended cross-Correlation analysis values.
+    ///
+    function getRhoDcca(dfa1, dfa2, dcca) {
+        // Calculates the rhoDCCA.
+        n = dcca.length
+        rhoDccaData = []
+        rhoDccaData.push(["scale", "dfa1", "dfa2", "dcca", "rhodcca"])
+        for (i = 1; i < n; i = i + 1) {
+            rhodcca = dcca[i, 1] / (dfa1[i, 1] * dfa2[i, 1])
+            rhoDccaData.push([rs[i], dfa1[i, 1], dfa2[i, 1], dcca[i, 1], rhodcca])
+        }
+        return(rhoDccaData)
     }
 
     /// Starts the application and processes the data passed as command line arguments.
@@ -426,6 +474,7 @@ namespace maiastatistics {
             doLSQR = false
             calculateDFA = false
             calculateDCCA = false
+            calculateRhoDCCA = false
             minbox = 0
             maxbox = 0
             rsmode = "peng"
@@ -476,6 +525,7 @@ namespace maiastatistics {
                         system.log("       --nfit               The order of the regression fit for DFA.")
                         system.log("       --sw                 The sliding window mode for DFA.")
                         system.log("       --dcca               Calculates the DCCA.")
+                        system.log("       --rhodcca            Calculates the rhoDCCA.")
                         system.log("       --i1                 Input file name 1 for DCCA and rhoDCCA.")
                         system.log("       --i2                 Input file name 2 for DCCA and rhoDCCA.")
                         process.exit(0)
@@ -569,6 +619,8 @@ namespace maiastatistics {
                         sw = 1
                     } elseif (system.argv[i] == "--dcca") {
                         calculateDCCA = true
+                    } elseif (system.argv[i] == "--rhodcca") {
+                        calculateRhoDCCA = true
                     } elseif (system.argv[i] == "--i1") {
                         i = i + 1
                         inputFile1 = system.argv[i]
@@ -801,8 +853,10 @@ namespace maiastatistics {
                     // Get the file name extension.
                     fileExtension2 = inputFile2.split(".")
                     fileExtension2 = fileExtension2.pop()
+
                     inputData1 = system.loadCSV(inputFile1, linesToSkip, separator, true, true)
                     inputData2 = system.loadCSV(inputFile2, linesToSkip, separator, true, true)
+
                     // Define the boxes sizes.
                     npts = inputData1.length
                     if (minbox < 2 * nfit) {
@@ -827,6 +881,56 @@ namespace maiastatistics {
                     cumulativeSum1 = dfa.getCumulativeSum(inputData1, mavg)
                     cumulativeSum2 = dfa.getCumulativeSum(inputData2, mavg)
                     
+                    // Calculates the DCCA.
+                    dccaData = this.getDcca(cumulativeSum1, cumulativeSum2, nfit, rs)
+
+                    // Saves the DCCA data.
+                    fileContents = system.createCSV(dccaData, separator)
+                    fs.writeFileSync(outputFile, fileContents)
+                } elseif (calculateRhoDCCA) {
+                    // Get the file 1 without extension.
+                    fileName1 = inputFile1.split(".")
+                    fileName1 = fileName1.shift()
+                    // Get the file name extension.
+                    fileExtension1 = inputFile1.split(".")
+                    fileExtension1 = fileExtension1.pop()
+                    // Get the file 2 without extension.
+                    fileName2 = inputFile2.split(".")
+                    fileName2 = fileName2.shift()
+                    // Get the file name extension.
+                    fileExtension2 = inputFile2.split(".")
+                    fileExtension2 = fileExtension2.pop()
+
+                    inputData1 = system.loadCSV(inputFile1, linesToSkip, separator, true, true)
+                    inputData2 = system.loadCSV(inputFile2, linesToSkip, separator, true, true)
+
+                    // Define the boxes sizes.
+                    npts = inputData1.length
+                    if (minbox < 2 * nfit) {
+                        minbox = 2 * nfit
+                    }
+                    if (maxbox == 0 || maxbox > math.round(npts / 4)) {
+                        maxbox = math.round(npts / 4)
+                    }
+                    if (minbox > maxbox) {
+                        temp = minbox
+                        minbox = maxbox
+                        maxbox = temp
+                        if (minbox < 2 * nfit) {
+                            minbox = 2 * nfit
+                        }
+                    }
+
+                    // Create the scale matrix.
+                    rs = dfa.getRScale(minbox, maxbox, math.pow(2.0, 1.0/8.0), rsmode)
+
+                    // Calculates the cumulative sum.
+                    cumulativeSum1 = dfa.getCumulativeSum(inputData1, mavg)
+                    cumulativeSum2 = dfa.getCumulativeSum(inputData2, mavg)
+                    
+                    // Set sliding window.
+                    sw = 1
+
                     // Calculates the DFA 1.
                     dfaObject1 = this.getDfa(cumulativeSum1, nfit, rs, sw)
                     dfaData1 = dfaObject1.dfa
@@ -838,25 +942,14 @@ namespace maiastatistics {
                     lsqr2 = dfaObject2.lsqr
 
                     // Calculates the DCCA.
-                    dcca = dfa.getDcca(cumulativeSum1, cumulativeSum2, nfit, rs)
-                    dccaData = []
-                    dccaData.push(["scale", "dfa1", "dfa2", "dcca"])
-                    for (i = 1; i < n; i = i + 1) {
-                        dccaData.push([rs[i], dfaData1[i, 1], dfaData2[i, 1], dcca[i]])
-                    }
+                    // Calculates the DCCA.
+                    dccaData = this.getDcca(cumulativeSum1, cumulativeSum2, nfit, rs)
                     
-                    // Saves the DFA data.
-                    outputFile1 = fileName1 + "-dfa." + fileExtension1
-                    fileContents1 = system.createCSV(dfaData1, separator)
-                    fs.writeFileSync(outputFile1, fileContents1)
+                    rhoDccaData = this.getRhoDcca(dfaData1, dfaData2, dccaData)
 
-                    outputFile2 = fileName2 + "-dfa." + fileExtension2
-                    fileContents2 = system.createCSV(dfaData2, separator)
-                    fs.writeFileSync(outputFile2, fileContents2)
-
-                    // Saves the DCCA data.
-                    fileContents3 = system.createCSV(dccaData, separator)
-                    fs.writeFileSync(outputFile, fileContents3)
+                    // Saves the rhoDCCA data.
+                    fileContents = system.createCSV(rhoDccaData, separator)
+                    fs.writeFileSync(outputFile, fileContents)
                 } else {
                     system.log(maiastatistics.appTitle + " Command Line Interface (CLI)")
                     system.log("Usage: " + maiastatistics.appName + " [options] [input file] [--] [arguments]")

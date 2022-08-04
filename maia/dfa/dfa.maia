@@ -213,15 +213,7 @@ namespace dfa {
             if (pboxsize > boxsize) {
                 pboxsize = 0
             }
-            // This should be true the first time only.
-            if (pboxsize == 0) {
-                for (j = 1; j <= nfit; j = j + 1) {
-                    for (k = 1; k <= nfit; k = k + 1) {
-                        covar0[j, k] = 0.0
-                    }
-                }
-            }
-           for (i = pboxsize + 1; i <= boxsize; i = i + 1) {
+            for (i = pboxsize + 1; i <= boxsize; i = i + 1) {
                 for (j = 1; j <= nfit; j = j + 1) {
                     temp = x[i, j]
                     for (k = 1; k <= j; k = k + 1) {
@@ -237,7 +229,6 @@ namespace dfa {
             pboxsize = boxsize
         }
         for (j = 1; j <= nfit; j = j + 1) {
-            beta[j] = ipiv[j] = 0
             for (k = 1; k <= nfit; k = k + 1) {
                 covar[j, k] = covar0[j, k]
             }
@@ -357,9 +348,15 @@ namespace dfa {
         }
         for (i = 1; i <= nr; i = i + 1) {
             boxsize = rs[i]
-            inc = 1
-            // Does a binary OR with the result to convert to Integer.
-            stat = ((npts - boxsize + 1) | 0) * boxsize
+            if (sw) {
+                inc = 1
+                // Does a binary OR with the result to convert to Integer.
+                stat = ((npts - boxsize + 1) | 0) * boxsize
+            } else {
+                inc = boxsize
+                // Does a binary OR with the result to convert to Integer.
+                stat = ((npts / boxsize) | 0) * boxsize
+            }
             mse[i] = 0.0
             for (j = 0; j <= npts - boxsize; j = j + inc) {
                 fit = this.getPolyfit(x, seq, j, boxsize, nfit)
@@ -410,8 +407,8 @@ namespace dfa {
                 coefficient1 = fit1.coefficient
                 coefficient2 = fit2.coefficient
                 for (k = 1; k <= boxsize; k = k + 1) {
-                    erro1 = coefficient1[1] + coefficient1[2] * x[k + j] - seq1[k + j]
-                    erro2 = coefficient2[1] + coefficient2[2] * x[k + j] - seq2[k + j]
+                    erro1 = coefficient1[1] + coefficient1[2] * k - seq1[k + j]
+                    erro2 = coefficient2[1] + coefficient2[2] * k - seq2[k + j]
                     dcca[i] = dcca[i] + erro1 * erro2
                 }
             }
