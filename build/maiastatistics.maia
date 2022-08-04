@@ -353,9 +353,7 @@ namespace maiastatistics {
         }
         
         // Calculates the DFA.
-        dfaObject = dfa.getDfa(seq, nfit, rs, sw)
-        mse = dfaObject.mse
-        coefficient = dfaObject.coefficient
+        mse = dfa.getDfa(seq, nfit, rs, sw)
 
         n = rs.length
         dfaData = []
@@ -372,7 +370,6 @@ namespace maiastatistics {
         lsqr = this.getLsqr(dfaLog10Data)
 
         returnObject = {
-            "coefficient": coefficient,
             "dfa": dfaData,
             "lsqr": lsqr
         }
@@ -774,7 +771,6 @@ namespace maiastatistics {
                     // Calculates the DFA.
                     dfaObject = this.getDfa(cumulativeSum, nfit, rs, sw)
                     dfaData = dfaObject.dfa
-                    coefficient = dfaObject.coefficient
                     lsqr = dfaObject.lsqr
 
                     // Saves the DFA data.
@@ -826,7 +822,7 @@ namespace maiastatistics {
 
                     // Create the scale matrix.
                     rs = dfa.getRScale(minbox, maxbox, math.pow(2.0, 1.0/8.0), rsmode)
-                    
+
                     // Calculates the cumulative sum.
                     cumulativeSum1 = dfa.getCumulativeSum(inputData1, mavg)
                     cumulativeSum2 = dfa.getCumulativeSum(inputData2, mavg)
@@ -834,20 +830,19 @@ namespace maiastatistics {
                     // Calculates the DFA 1.
                     dfaObject1 = this.getDfa(cumulativeSum1, nfit, rs, sw)
                     dfaData1 = dfaObject1.dfa
-                    coefficient1 = dfaObject1.coefficient
                     lsqr1 = dfaObject1.lsqr
 
                     // Calculates the DFA 2.
                     dfaObject2 = this.getDfa(cumulativeSum2, nfit, rs, sw)
                     dfaData2 = dfaObject2.dfa
-                    coefficient2 = dfaObject2.coefficient
                     lsqr2 = dfaObject2.lsqr
 
                     // Calculates the DCCA.
+                    dcca = dfa.getDcca(cumulativeSum1, cumulativeSum2, nfit, rs)
                     dccaData = []
                     dccaData.push(["scale", "dfa1", "dfa2", "dcca"])
                     for (i = 1; i < n; i = i + 1) {
-                        dccaData.push([rs[i], dfaData1[i, 1], dfaData2[i, 1]])
+                        dccaData.push([rs[i], dfaData1[i, 1], dfaData2[i, 1], dcca[i]])
                     }
                     
                     // Saves the DFA data.

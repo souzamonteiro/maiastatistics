@@ -347,7 +347,6 @@ namespace dfa {
         npts = seq.length - 1
         nr = rs.length - 1
         mse = core.matrix(0.0, nr + 1)
-        coefficient = core.matrix(0.0, nr + 1)
         x = core.matrix(0.0, rs[nr] + 1, nfit + 1)
         for (i = 1; i <= rs[nr]; i = i + 1) {
             x[i, 1] = 1.0
@@ -358,28 +357,66 @@ namespace dfa {
         }
         for (i = 1; i <= nr; i = i + 1) {
             boxsize = rs[i]
-            if (sw) {
-                inc = 1
-                // Does a binary OR with the result to convert to Integer.
-                stat = ((npts - boxsize + 1) | 0) * boxsize
-            } else {
-                inc = boxsize
-                // Does a binary OR with the result to convert to Integer.
-                stat = ((npts / boxsize) | 0) * boxsize
-            }
+            inc = 1
+            // Does a binary OR with the result to convert to Integer.
+            stat = ((npts - boxsize + 1) | 0) * boxsize
             mse[i] = 0.0
             for (j = 0; j <= npts - boxsize; j = j + inc) {
                 fit = this.getPolyfit(x, seq, j, boxsize, nfit)
-                mse[i] = mse[i] + fit.rss
-                coefficient[i] = fit.coefficient
-                //mse[i] = mse[i] + this.getPolyfit(x, seq, j, boxsize, nfit)
+                rss = fit.rss
+                mse[i] = mse[i] + rss
             }
             mse[i] = mse[i] / stat
         }
-        returnObject = {
-            "coefficient": coefficient,
-            "mse": mse
+        return(mse)
+    }
+
+    ///
+    /// Performs the detrended fluctuation analysis.
+    /// @method getDfa
+    /// @memberof dfa
+    /// @param {object}   seq1 - Input data array 1.
+    /// @param {object}   seq2 - Input data array 2.
+    /// @param {number}   nfit - Order of detrending (2: linear, 3: quadratic, etc).
+    /// @param {object}   rs - Array of box sizes (uniformly distributed on log scale).
+    /// @return {object}  Returns the mean squared fluctuations in mse.
+    ///
+    function getDcca(seq1, seq2, nfit, rs) {
+        if (core.type(nfit) == "undefined") {
+            nfit = 2
         }
-        return(returnObject)
+        
+        npts = seq1.length - 1
+        nr = rs.length - 1
+        dcca = core.matrix(0.0, nr + 1)
+        x = core.matrix(0.0, rs[nr] + 1, nfit + 1)
+        for (i = 1; i <= rs[nr]; i = i + 1) {
+            x[i, 1] = 1.0
+            x[i, 2] = i
+            for (j = 3; j <= nfit; j = j + 1) {
+                x[i, j] = x[i, j - 1] * i
+            }
+        }
+        for (i = 1; i <= nr; i = i + 1) {
+            boxsize = rs[i]
+            inc = 1
+            // Does a binary OR with the result to convert to Integer.
+            stat = ((npts - boxsize + 1) | 0) * boxsize
+
+            dcca[i] = 0.0
+            for (j = 0; j <= npts - boxsize; j = j + inc) {
+                fit1 = this.getPolyfit(x, seq1, j, boxsize, nfit)
+                fit2 = this.getPolyfit(x, seq2, j, boxsize, nfit)
+                coefficient1 = fit1.coefficient
+                coefficient2 = fit2.coefficient
+                for (k = 1; k <= boxsize; k = k + 1) {
+                    erro1 = coefficient1[1] + coefficient1[2] * x[k + j] - seq1[k + j]
+                    erro2 = coefficient2[1] + coefficient2[2] * x[k + j] - seq2[k + j]
+                    dcca[i] = dcca[i] + erro1 * erro2
+                }
+            }
+            dcca[i] = dcca[i] / stat
+        }
+        return(dcca)
     }
 }
