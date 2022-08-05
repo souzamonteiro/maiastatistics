@@ -355,7 +355,7 @@ namespace maiastatistics {
         // Calculates the DFA.
         mse = dfa.getDfa(seq, nfit, rs, sw)
 
-        n = rs.length
+        n = mse.length
         dfaData = []
         dfaLog10Data = []
         dfaData.push(["scale", "dfa", "log10(scale)", "log10(dfa)"])
@@ -394,7 +394,7 @@ namespace maiastatistics {
         // Calculates the DFA.
         dcca = dfa.getDcca(seq1, seq2, nfit, rs)
 
-        n = rs.length
+        n = dcca.length
         dccaData = []
         dccaData.push(["scale", "dcca"])
         for (i = 1; i < n; i = i + 1) {
@@ -414,12 +414,13 @@ namespace maiastatistics {
     ///
     function getRhoDcca(dfa1, dfa2, dcca) {
         // Calculates the rhoDCCA.
-        n = dcca.length
+        rhodcca = dfa.getRhoDcca(dfa1, dfa2, dcca)
+
+        n = rhodcca.length
         rhoDccaData = []
         rhoDccaData.push(["scale", "dfa1", "dfa2", "dcca", "rhodcca"])
         for (i = 1; i < n; i = i + 1) {
-            rhodcca = dcca[i, 1] / (dfa1[i, 1] * dfa2[i, 1])
-            rhoDccaData.push([rs[i], dfa1[i, 1], dfa2[i, 1], dcca[i, 1], rhodcca])
+            rhoDccaData.push([rs[i], math.sqrt(dfa1[i]), math.sqrt(dfa2[i]), dcca[i], rhodcca[i]])
         }
         return(rhoDccaData)
     }
@@ -932,21 +933,17 @@ namespace maiastatistics {
                     sw = 1
 
                     // Calculates the DFA 1.
-                    dfaObject1 = this.getDfa(cumulativeSum1, nfit, rs, sw)
-                    dfaData1 = dfaObject1.dfa
-                    lsqr1 = dfaObject1.lsqr
-
-                    // Calculates the DFA 2.
-                    dfaObject2 = this.getDfa(cumulativeSum2, nfit, rs, sw)
-                    dfaData2 = dfaObject2.dfa
-                    lsqr2 = dfaObject2.lsqr
-
-                    // Calculates the DCCA.
-                    // Calculates the DCCA.
-                    dccaData = this.getDcca(cumulativeSum1, cumulativeSum2, nfit, rs)
+                    dfa1 = dfa.getDfa(cumulativeSum1, nfit, rs, sw)
                     
-                    rhoDccaData = this.getRhoDcca(dfaData1, dfaData2, dccaData)
-
+                    // Calculates the DFA 2.
+                    dfa2 = dfa.getDfa(cumulativeSum2, nfit, rs, sw)
+                    
+                    // Calculates the DCCA.
+                    dcca = dfa.getDcca(cumulativeSum1, cumulativeSum2, nfit, rs)
+                    
+                    // Calculates the rhoDCCA.
+                    rhoDccaData = this.getRhoDcca(dfa1, dfa2, dcca)
+                    
                     // Saves the rhoDCCA data.
                     fileContents = system.createCSV(rhoDccaData, separator)
                     fs.writeFileSync(outputFile, fileContents)

@@ -17,10 +17,10 @@
 /// limitations under the License.
 ///
 
- ///
- /// MaiaScript Detrended Fluctuation Analysis (DFA) library.
- /// @namespace dfa
- ///
+///
+/// MaiaScript Detrended Fluctuation Analysis (DFA) library.
+/// @namespace dfa
+///
 namespace dfa {
     ///
     /// Calculates the average and the deviation of a time series.
@@ -117,6 +117,28 @@ namespace dfa {
     }
     
     ///
+    /// Creates a vector containing the Fibonacci series for the indicated range.
+    /// @method getFibonacciSeries
+    /// @memberof dfa
+    /// @param {number}   begin - The start value.
+    /// @param {number}   end - The final value.
+    /// @return {object}  Returns the Fibonacci series for the indicated range.
+    ///
+    function getFibonacciSeries(begin, end) {
+        function fibonacci(n) {
+            if (n <= 1) {
+                return(n)
+            }
+            return(fibonacci(n - 1) + fibonacci(n - 2))
+        }
+        fibonacciSeries = []
+        for (i = begin; i <= end; i = i + 1) {
+            fibonacciSeries.push(fibonacci(i))
+        }
+        return(fibonacciSeries )
+    }
+
+    ///
     /// Allocates and fills rs[], the array of box sizes used by getDfa() below.
     /// The box sizes range from (exactly) minbox to (approximately) maxbox,
     /// and are arranged in a geometric series such that the ratio between
@@ -173,6 +195,8 @@ namespace dfa {
             }
             m = m + 1
             rs = rs.slice(0, m)
+        } elseif (mode == "fibonacci") {
+            rs = this.getFibonacciSeries(minbox, maxbox)
         }
         return(rs)
     }
@@ -369,14 +393,14 @@ namespace dfa {
     }
 
     ///
-    /// Performs the detrended fluctuation analysis.
-    /// @method getDfa
+    /// Performs the detrended cross-Correlation analysis.
+    /// @method getDcca
     /// @memberof dfa
     /// @param {object}   seq1 - Input data array 1.
     /// @param {object}   seq2 - Input data array 2.
     /// @param {number}   nfit - Order of detrending (2: linear, 3: quadratic, etc).
     /// @param {object}   rs - Array of box sizes (uniformly distributed on log scale).
-    /// @return {object}  Returns the mean squared fluctuations in mse.
+    /// @return {object}  Returns the detrended cross-Correlation analysis values.
     ///
     function getDcca(seq1, seq2, nfit, rs) {
         if (core.type(nfit) == "undefined") {
@@ -415,5 +439,24 @@ namespace dfa {
             dcca[i] = dcca[i] / stat
         }
         return(dcca)
+    }
+
+    ///
+    /// Performs the detrended cross-Correlation analysis.
+    /// @method getRhoDcca
+    /// @memberof maiastatistics
+    /// @param {object}   dfa1 - DFA array of first series.
+    /// @param {object}   dfa2 - DFA array of second series.
+    /// @param {object}   dcca - DCCA array for the two series.
+    /// @return {object}  Returns the detrended cross-Correlation analysis values.
+    ///
+    function getRhoDcca(dfa1, dfa2, dcca) {
+        // Calculates the rhoDCCA.
+        n = dcca.length
+        rhodcca = core.matrix(0.0, n)
+        for (i = 1; i < n; i = i + 1) {
+            rhodcca[i] = dcca[i] / (math.sqrt(dfa1[i]) * math.sqrt(dfa2[i]))
+        }
+        return(rhodcca)
     }
 }
