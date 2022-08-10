@@ -657,8 +657,12 @@ namespace maiastatistics {
                         i = i + 1
                         inputFile2 = system.argv[i]
                     } else {
-                        inputFile = system.argv[i]
-                        break
+                        if (inputFile == "") {
+                            inputFile = system.argv[i]
+                        } else {
+                            inputFile1 = inputFile
+                            inputFile2 = system.argv[i]
+                        }
                     }
                     i = i + 1
                 }
@@ -794,187 +798,283 @@ namespace maiastatistics {
                     }
                     fs.writeFileSync(reportFile, reportFileContents)
                 } elseif (doLSQR) {
-                    // Get the file without extension.
-                    fileName = inputFile.split(".")
-                    fileName = fileName.shift()
-                    // Get the file name extension.
-                    fileExtension = inputFile.split(".")
-                    fileExtension = fileExtension.pop()
+                    glob = system.require("glob")
 
-                    inputData = system.loadCSV(inputFile, linesToSkip, separator, true, true)
+                    files = glob.sync(inputFile)
 
-                    // Calculates the least squares fit.
-                    lsqr = this.getLsqr(inputData)
+                    if (files.length == 0) {
+                        system.log(maiastatistics.appTitle + " Command Line Interface (CLI)")
+                        system.log("Usage: " + maiastatistics.appName + " [options] [input file] [--] [arguments]")
+                    } else {
+                        system.log("Processing " + files.length + " files...")
 
-                    // Saves the report file.
-                    reportFileContents = ""
-                    reportFileContents = reportFileContents + "y = a + b * x\n"
-                    reportFileContents = reportFileContents + "a: " + lsqr.a + "\n"
-                    reportFileContents = reportFileContents + "b: " + lsqr.b + "\n"
-                    reportFileContents = reportFileContents + "r2: " + lsqr.r2 + "\n"
-                    if (reportFile == "") {
-                        reportFile = fileName + "-report-lsqr.txt"
+                        for (fileNumber = 0; fileNumber &lt; files.length; fileNumber = fileNumber + 1) {
+                            // Get the full file name.
+                            file = files[fileNumber]
+
+                            system.log("Processing file '" + file + "'...")
+
+                            // Get the file without extension.
+                            fileName = file.split(".")
+                            fileName = fileName.shift()
+                            // Get the file name extension.
+                            fileExtension = file.split(".")
+                            fileExtension = fileExtension.pop()
+
+                            inputData = system.loadCSV(file, linesToSkip, separator, true, true)
+
+                            // Calculates the least squares fit.
+                            lsqr = this.getLsqr(inputData)
+
+                            // Saves the report file.
+                            reportFileContents = ""
+                            reportFileContents = reportFileContents + "y = a + b * x\n"
+                            reportFileContents = reportFileContents + "a: " + lsqr.a + "\n"
+                            reportFileContents = reportFileContents + "b: " + lsqr.b + "\n"
+                            reportFileContents = reportFileContents + "r2: " + lsqr.r2 + "\n"
+                            if (reportFile == "") {
+                                reportFile = fileName + "-report-lsqr.txt"
+                            }
+                            fs.writeFileSync(reportFile, reportFileContents)
+                            
+                            reportFile = ""
+                        }
                     }
-                    fs.writeFileSync(reportFile, reportFileContents)
                 } elseif (calculateDFA) {
-                    // Get the file without extension.
-                    fileName = inputFile.split(".")
-                    fileName = fileName.shift()
-                    // Get the file name extension.
-                    fileExtension = inputFile.split(".")
-                    fileExtension = fileExtension.pop()
+                    glob = system.require("glob")
 
-                    inputData = system.loadCSV(inputFile, linesToSkip, separator, true, true)
+                    files = glob.sync(inputFile)
+                    
+                    if (files.length == 0) {
+                        system.log(maiastatistics.appTitle + " Command Line Interface (CLI)")
+                        system.log("Usage: " + maiastatistics.appName + " [options] [input file] [--] [arguments]")
+                    } else {
+                        system.log("Processing " + files.length + " files...")
 
-                    // Define the boxes sizes.
-                    npts = inputData.length
-                    if (minbox &lt; 2 * nfit) {
-                        minbox = 2 * nfit
-                    }
-                    if (maxbox == 0 || maxbox > math.round(npts / 4)) {
-                        maxbox = math.round(npts / 4)
-                    }
-                    if (minbox > maxbox) {
-                        temp = minbox
-                        minbox = maxbox
-                        maxbox = temp
-                        if (minbox &lt; 2 * nfit) {
-                            minbox = 2 * nfit
+                        for (fileNumber = 0; fileNumber &lt; files.length; fileNumber = fileNumber + 1) {
+                            // Get the full file name.
+                            file = files[fileNumber]
+
+                            system.log("Processing file '" + file + "'...")
+
+                            // Get the file without extension.
+                            fileName = file.split(".")
+                            fileName = fileName.shift()
+                            // Get the file name extension.
+                            fileExtension = file.split(".")
+                            fileExtension = fileExtension.pop()
+                            
+                            if (outputFile == "") {
+                                outputFile = fileName + "-dfa." + fileExtension
+                            }
+
+                            inputData = system.loadCSV(file, linesToSkip, separator, true, true)
+
+                            // Define the boxes sizes.
+                            npts = inputData.length
+                            if (minbox &lt; 2 * nfit) {
+                                minbox = 2 * nfit
+                            }
+                            if (maxbox == 0 || maxbox > math.round(npts / 4)) {
+                                maxbox = math.round(npts / 4)
+                            }
+                            if (minbox > maxbox) {
+                                temp = minbox
+                                minbox = maxbox
+                                maxbox = temp
+                                if (minbox &lt; 2 * nfit) {
+                                    minbox = 2 * nfit
+                                }
+                            }
+
+                            // Create the scale matrix.
+                            rs = dfa.getRScale(minbox, maxbox, math.pow(2.0, 1.0/8.0), rsmode)
+
+                            // Calculates the cumulative sum.
+                            cumulativeSum = dfa.getCumulativeSum(inputData, mavg)
+
+                            // Calculates the DFA.
+                            dfaObject = this.getDfa(cumulativeSum, nfit, rs, sw)
+                            dfaData = dfaObject.dfa
+                            lsqr = dfaObject.lsqr
+
+                            // Saves the DFA data.
+                            fileContents = system.createCSV(dfaData, separator)
+                            fs.writeFileSync(outputFile, fileContents)
+
+                            // Saves the report file.
+                            reportFileContents = ""
+                            reportFileContents = reportFileContents + "y = a + b * x\n"
+                            reportFileContents = reportFileContents + "a: " + lsqr.a + "\n"
+                            reportFileContents = reportFileContents + "b: " + lsqr.b + "\n"
+                            reportFileContents = reportFileContents + "r2: " + lsqr.r2 + "\n"
+                            if (reportFile == "") {
+                                reportFile = fileName + "-report-lsqr.txt"
+                            }
+                            fs.writeFileSync(reportFile, reportFileContents)
+
+                            outputFile = ""
+                            reportFile = ""
                         }
                     }
-
-                    // Create the scale matrix.
-                    rs = dfa.getRScale(minbox, maxbox, math.pow(2.0, 1.0/8.0), rsmode)
-
-                    // Calculates the cumulative sum.
-                    cumulativeSum = dfa.getCumulativeSum(inputData, mavg)
-
-                    // Calculates the DFA.
-                    dfaObject = this.getDfa(cumulativeSum, nfit, rs, sw)
-                    dfaData = dfaObject.dfa
-                    lsqr = dfaObject.lsqr
-
-                    // Saves the DFA data.
-                    outputFile = fileName + "-dfa." + fileExtension
-                    fileContents = system.createCSV(dfaData, separator)
-                    fs.writeFileSync(outputFile, fileContents)
-
-                    // Saves the report file.
-                    reportFileContents = ""
-                    reportFileContents = reportFileContents + "y = a + b * x\n"
-                    reportFileContents = reportFileContents + "a: " + lsqr.a + "\n"
-                    reportFileContents = reportFileContents + "b: " + lsqr.b + "\n"
-                    reportFileContents = reportFileContents + "r2: " + lsqr.r2 + "\n"
-                    if (reportFile == "") {
-                        reportFile = fileName + "-report-lsqr.txt"
-                    }
-                    fs.writeFileSync(reportFile, reportFileContents)
                 } elseif (calculateDCCA) {
+                    glob = system.require("glob")
+
                     // Get the file 1 without extension.
                     fileName1 = inputFile1.split(".")
                     fileName1 = fileName1.shift()
                     // Get the file name extension.
                     fileExtension1 = inputFile1.split(".")
                     fileExtension1 = fileExtension1.pop()
-                    // Get the file 2 without extension.
-                    fileName2 = inputFile2.split(".")
-                    fileName2 = fileName2.shift()
-                    // Get the file name extension.
-                    fileExtension2 = inputFile2.split(".")
-                    fileExtension2 = fileExtension2.pop()
+                    
+                    files = glob.sync(inputFile2)
+                    
+                    if (files.length == 0) {
+                        system.log(maiastatistics.appTitle + " Command Line Interface (CLI)")
+                        system.log("Usage: " + maiastatistics.appName + " [options] [input file] [--] [arguments]")
+                    } else {
+                        system.log("Processing " + files.length + " files...")
 
-                    inputData1 = system.loadCSV(inputFile1, linesToSkip, separator, true, true)
-                    inputData2 = system.loadCSV(inputFile2, linesToSkip, separator, true, true)
+                        for (fileNumber = 0; fileNumber &lt; files.length; fileNumber = fileNumber + 1) {
+                            // Get the full file name.
+                            file = files[fileNumber]
+                            
+                            // Get the file without extension.
+                            fileName2 = file.split(".")
+                            fileName2 = fileName2.shift()
+                            // Get the file name extension.
+                            fileExtension2 = file.split(".")
+                            fileExtension2 = fileExtension2.pop()
 
-                    // Define the boxes sizes.
-                    npts = inputData1.length
-                    if (minbox &lt; 2 * nfit) {
-                        minbox = 2 * nfit
-                    }
-                    if (maxbox == 0 || maxbox > math.round(npts / 4)) {
-                        maxbox = math.round(npts / 4)
-                    }
-                    if (minbox > maxbox) {
-                        temp = minbox
-                        minbox = maxbox
-                        maxbox = temp
-                        if (minbox &lt; 2 * nfit) {
-                            minbox = 2 * nfit
+                            system.log("Processing files '" + inputFile1 + "' and '" + file + "'...")
+
+                            // Sets the output file.
+                            if (outputFile == "") {
+                                outputFile = fileName2 + "-dcca.csv"
+                            }
+
+                            inputData1 = system.loadCSV(inputFile1, linesToSkip, separator, true, true)
+                            inputData2 = system.loadCSV(file, linesToSkip, separator, true, true)
+
+                            // Define the boxes sizes.
+                            npts = inputData1.length
+                            if (minbox &lt; 2 * nfit) {
+                                minbox = 2 * nfit
+                            }
+                            if (maxbox == 0 || maxbox > math.round(npts / 4)) {
+                                maxbox = math.round(npts / 4)
+                            }
+                            if (minbox > maxbox) {
+                                temp = minbox
+                                minbox = maxbox
+                                maxbox = temp
+                                if (minbox &lt; 2 * nfit) {
+                                    minbox = 2 * nfit
+                                }
+                            }
+
+                            // Create the scale matrix.
+                            rs = dfa.getRScale(minbox, maxbox, math.pow(2.0, 1.0/8.0), rsmode)
+
+                            // Calculates the cumulative sum.
+                            cumulativeSum1 = dfa.getCumulativeSum(inputData1, mavg)
+                            cumulativeSum2 = dfa.getCumulativeSum(inputData2, mavg)
+                            
+                            // Calculates the DCCA.
+                            dccaData = this.getDcca(cumulativeSum1, cumulativeSum2, nfit, rs)
+
+                            // Saves the DCCA data.
+                            fileContents = system.createCSV(dccaData, separator)
+                            fs.writeFileSync(outputFile, fileContents)
+
+                            outputFile = ""
                         }
                     }
-
-                    // Create the scale matrix.
-                    rs = dfa.getRScale(minbox, maxbox, math.pow(2.0, 1.0/8.0), rsmode)
-
-                    // Calculates the cumulative sum.
-                    cumulativeSum1 = dfa.getCumulativeSum(inputData1, mavg)
-                    cumulativeSum2 = dfa.getCumulativeSum(inputData2, mavg)
-                    
-                    // Calculates the DCCA.
-                    dccaData = this.getDcca(cumulativeSum1, cumulativeSum2, nfit, rs)
-
-                    // Saves the DCCA data.
-                    fileContents = system.createCSV(dccaData, separator)
-                    fs.writeFileSync(outputFile, fileContents)
                 } elseif (calculateRhoDCCA) {
+                    glob = system.require("glob")
+
                     // Get the file 1 without extension.
                     fileName1 = inputFile1.split(".")
                     fileName1 = fileName1.shift()
                     // Get the file name extension.
                     fileExtension1 = inputFile1.split(".")
                     fileExtension1 = fileExtension1.pop()
-                    // Get the file 2 without extension.
-                    fileName2 = inputFile2.split(".")
-                    fileName2 = fileName2.shift()
-                    // Get the file name extension.
-                    fileExtension2 = inputFile2.split(".")
-                    fileExtension2 = fileExtension2.pop()
+                    
+                    files = glob.sync(inputFile2)
+                    
+                    if (files.length == 0) {
+                        system.log(maiastatistics.appTitle + " Command Line Interface (CLI)")
+                        system.log("Usage: " + maiastatistics.appName + " [options] [input file] [--] [arguments]")
+                    } else {
+                        system.log("Processing " + files.length + " files...")
 
-                    inputData1 = system.loadCSV(inputFile1, linesToSkip, separator, true, true)
-                    inputData2 = system.loadCSV(inputFile2, linesToSkip, separator, true, true)
+                        for (fileNumber = 0; fileNumber &lt; files.length; fileNumber = fileNumber + 1) {
+                            // Get the full file name.
+                            file = files[fileNumber]
+                            
+                            // Get the file without extension.
+                            fileName2 = file.split(".")
+                            fileName2 = fileName2.shift()
+                            // Get the file name extension.
+                            fileExtension2 = file.split(".")
+                            fileExtension2 = fileExtension2.pop()
 
-                    // Define the boxes sizes.
-                    npts = inputData1.length
-                    if (minbox &lt; 2 * nfit) {
-                        minbox = 2 * nfit
-                    }
-                    if (maxbox == 0 || maxbox > math.round(npts / 4)) {
-                        maxbox = math.round(npts / 4)
-                    }
-                    if (minbox > maxbox) {
-                        temp = minbox
-                        minbox = maxbox
-                        maxbox = temp
-                        if (minbox &lt; 2 * nfit) {
-                            minbox = 2 * nfit
+                            system.log("Processing files '" + inputFile1 + "' and '" + file + "'...")
+
+                            // Sets the output file.
+                            if (outputFile == "") {
+                                outputFile = fileName2 + "-rhodcca.csv"
+                            }
+
+                            inputData1 = system.loadCSV(inputFile1, linesToSkip, separator, true, true)
+                            inputData2 = system.loadCSV(file, linesToSkip, separator, true, true)
+
+                            // Define the boxes sizes.
+                            npts = inputData1.length
+                            if (minbox &lt; 2 * nfit) {
+                                minbox = 2 * nfit
+                            }
+                            if (maxbox == 0 || maxbox > math.round(npts / 4)) {
+                                maxbox = math.round(npts / 4)
+                            }
+                            if (minbox > maxbox) {
+                                temp = minbox
+                                minbox = maxbox
+                                maxbox = temp
+                                if (minbox &lt; 2 * nfit) {
+                                    minbox = 2 * nfit
+                                }
+                            }
+
+                            // Create the scale matrix.
+                            rs = dfa.getRScale(minbox, maxbox, math.pow(2.0, 1.0/8.0), rsmode)
+
+                            // Calculates the cumulative sum.
+                            cumulativeSum1 = dfa.getCumulativeSum(inputData1, mavg)
+                            cumulativeSum2 = dfa.getCumulativeSum(inputData2, mavg)
+                            
+                            // Set sliding window.
+                            sw = 1
+
+                            // Calculates the DFA 1.
+                            dfa1 = dfa.getDfa(cumulativeSum1, nfit, rs, sw)
+                            
+                            // Calculates the DFA 2.
+                            dfa2 = dfa.getDfa(cumulativeSum2, nfit, rs, sw)
+                            
+                            // Calculates the DCCA.
+                            dcca = dfa.getDcca(cumulativeSum1, cumulativeSum2, nfit, rs)
+                            
+                            // Calculates the rhoDCCA.
+                            rhoDccaData = this.getRhoDcca(dfa1, dfa2, dcca)
+                            
+                            // Saves the rhoDCCA data.
+                            fileContents = system.createCSV(rhoDccaData, separator)
+                            fs.writeFileSync(outputFile, fileContents)
+
+                            outputFile = ""
                         }
                     }
-
-                    // Create the scale matrix.
-                    rs = dfa.getRScale(minbox, maxbox, math.pow(2.0, 1.0/8.0), rsmode)
-
-                    // Calculates the cumulative sum.
-                    cumulativeSum1 = dfa.getCumulativeSum(inputData1, mavg)
-                    cumulativeSum2 = dfa.getCumulativeSum(inputData2, mavg)
-                    
-                    // Set sliding window.
-                    sw = 1
-
-                    // Calculates the DFA 1.
-                    dfa1 = dfa.getDfa(cumulativeSum1, nfit, rs, sw)
-                    
-                    // Calculates the DFA 2.
-                    dfa2 = dfa.getDfa(cumulativeSum2, nfit, rs, sw)
-                    
-                    // Calculates the DCCA.
-                    dcca = dfa.getDcca(cumulativeSum1, cumulativeSum2, nfit, rs)
-                    
-                    // Calculates the rhoDCCA.
-                    rhoDccaData = this.getRhoDcca(dfa1, dfa2, dcca)
-                    
-                    // Saves the rhoDCCA data.
-                    fileContents = system.createCSV(rhoDccaData, separator)
-                    fs.writeFileSync(outputFile, fileContents)
                 } else {
                     system.log(maiastatistics.appTitle + " Command Line Interface (CLI)")
                     system.log("Usage: " + maiastatistics.appName + " [options] [input file] [--] [arguments]")
@@ -1006,7 +1106,7 @@ if (core.type(process) != "undefined") {
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.10</a> on Fri Aug 05 2022 10:21:33 GMT+0000 (Coordinated Universal Time)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.10</a> on Wed Aug 10 2022 22:53:05 GMT+0000 (Coordinated Universal Time)
 </footer>
 
 <script> prettyPrint(); </script>
