@@ -476,10 +476,17 @@ namespace maiastatistics {
             }            
             // Command line options.
             inputFile = ""
+            inputFile1 = ""
+            inputFile2 = ""
             outputFile = ""
+            outputAverageFile = ""
+            outputDeviationFile = ""
+            outputErrorFile = ""
+            outputSumFile = ""
             reportFile = ""
-            csvFile = ""
-            linesToSkip = 0
+            firstLine = ""
+            lastLine = ""
+            numberOfLines = ""
             separator = ","            
             prefix = "sample"
             nFiles = 1
@@ -499,8 +506,10 @@ namespace maiastatistics {
             maximum = ""
             nextStep = false
             steps = 1
+            calculateAverage = false
+            calculateSum = false
             calculatePearson = false
-            doLSQR = false
+            calculateLSQR = false
             calculateDFA = false
             calculateDCCA = false
             calculateRhoDCCA = false
@@ -510,8 +519,6 @@ namespace maiastatistics {
             mavg = false
             nfit = 2
             sw = 0
-            inputFile1 = ""
-            inputFile2 = ""
             // Get command line arguments.
             if (system.argc > 1) {
                 i = 1
@@ -524,9 +531,15 @@ namespace maiastatistics {
                         system.log("-i     [input file]         Input file name.")
                         system.log("-o     [output file]        Output file name.")
                         system.log("-r                          Statistics report file.")
-                        system.log("-c                          Statistics CSV file.")
-                        system.log("       --cf                 Correctness CSV file.")
-                        system.log("       --skipfirst          Skip first line of input and output training set files.")
+                        system.log("       --i1                 Input CSV file name 1.")
+                        system.log("       --i2                 Input CSV file name 2.")
+                        system.log("       --oavg               Average output CSV file.")
+                        system.log("       --odev               Standard deviation output CSV file.")
+                        system.log("       --oerr               Standard error output CSV file.")
+                        system.log("       --osum               Sums output CSV file.")
+                        system.log("       --first              First line to read from CSV file.")
+                        system.log("       --last               Last line to read from CSV file.")
+                        system.log("       --lines              Number of lines to read from CSV file.")
                         system.log("       --separator          Training set files column separator(default=,).")
                         system.log("       --prefix             Prefix for multiple neural network files (default=sample).")
                         system.log("       --nfiles             Number of files for multiple neural network files.")
@@ -544,6 +557,8 @@ namespace maiastatistics {
                         system.log("       --maximum            The maximum value of the time series.")
                         system.log("       --nextstep           Creates a new series containing the next steps for each value of the given series.")
                         system.log("       --steps              Number of next steps.")
+                        system.log("       --avg                Calculates the mean values, standard deviations or standard errors of cells from multiple CSV files.")
+                        system.log("       --sum                Calculates the sums of cells from multiple CSV files.")
                         system.log("       --pearson            Calculates the Pearson coefficient.")
                         system.log("       --lsqr               Calculates the best curve that approximates a set of points, using the least squares method.")
                         system.log("       --dfa                Calculates the DFA.")
@@ -555,8 +570,6 @@ namespace maiastatistics {
                         system.log("       --sw                 The sliding window mode for DFA.")
                         system.log("       --dcca               Calculates the DCCA.")
                         system.log("       --rhodcca            Calculates the rhoDCCA.")
-                        system.log("       --i1                 Input file name 1 for DCCA and rhoDCCA.")
-                        system.log("       --i2                 Input file name 2 for DCCA and rhoDCCA.")
                         process.exit(0)
                     } elseif (system.argv[i] == "-i") {
                         i = i + 1
@@ -567,11 +580,33 @@ namespace maiastatistics {
                     } elseif (system.argv[i] == "-r") {
                         i = i + 1
                         reportFile = system.argv[i]
-                    } elseif (system.argv[i] == "-c") {
+                    } elseif (system.argv[i] == "--i1") {
                         i = i + 1
-                        csvFile = system.argv[i]
-                    } elseif (system.argv[i] == "--skipfirst") {
-                        linesToSkip = 1
+                        inputFile1 = system.argv[i]
+                    } elseif (system.argv[i] == "--i2") {
+                        i = i + 1
+                        inputFile2 = system.argv[i]
+                    } elseif (system.argv[i] == "--oavg") {
+                        i = i + 1
+                        outputAverageFile = system.argv[i]
+                    } elseif (system.argv[i] == "--odev") {
+                        i = i + 1
+                        outputDeviationFile = system.argv[i]
+                    } elseif (system.argv[i] == "--oerr") {
+                        i = i + 1
+                        outputErrorFile = system.argv[i]
+                    } elseif (system.argv[i] == "--osum") {
+                        i = i + 1
+                        outputSumFile = system.argv[i]
+                    } elseif (system.argv[i] == "--first") {
+                        i = i + 1
+                        firstLine = core.toNumber(system.argv[i])
+                    } elseif (system.argv[i] == "--last") {
+                        i = i + 1
+                        lastLine = core.toNumber(system.argv[i])
+                    } elseif (system.argv[i] == "--lines") {
+                        i = i + 1
+                        numberOfLines = core.toNumber(system.argv[i])
                     } elseif (system.argv[i] == "--separator") {
                         i = i + 1
                         separator = system.argv[i]
@@ -624,10 +659,14 @@ namespace maiastatistics {
                     } elseif (system.argv[i] == "--steps") {
                         i = i + 1
                         steps = core.toNumber(system.argv[i])
+                    } elseif (system.argv[i] == "--avg") {
+                        calculateAverage = true
+                    } elseif (system.argv[i] == "--sum") {
+                        calculateSum = true
                     } elseif (system.argv[i] == "--pearson") {
                         calculatePearson = true
                     } elseif (system.argv[i] == "--lsqr") {
-                        doLSQR = true
+                        calculateLSQR = true
                     } elseif (system.argv[i] == "--dfa") {
                         calculateDFA = true
                     } elseif (system.argv[i] == "--minbox") {
@@ -650,12 +689,6 @@ namespace maiastatistics {
                         calculateDCCA = true
                     } elseif (system.argv[i] == "--rhodcca") {
                         calculateRhoDCCA = true
-                    } elseif (system.argv[i] == "--i1") {
-                        i = i + 1
-                        inputFile1 = system.argv[i]
-                    } elseif (system.argv[i] == "--i2") {
-                        i = i + 1
-                        inputFile2 = system.argv[i]
                     } else {
                         if (inputFile == "") {
                             inputFile = system.argv[i]
@@ -676,7 +709,7 @@ namespace maiastatistics {
                     if (outputFile == "") {
                         outputFile = fileName + "-column-" + core.toString(columnNumber) + "." + fileExtension
                     }
-                    inputData = system.loadCSV(inputFile, linesToSkip, separator, true, true)
+                    inputData = system.loadCSV(inputFile, firstLine, separator, true, true)
                     outputData = this.getColumn(inputData, columnNumber)
                     fileContents = system.createCSV(outputData, separator)
                     fs.writeFileSync(outputFile, fileContents)
@@ -691,7 +724,7 @@ namespace maiastatistics {
                         outputFile = fileName + "-replaced." + fileExtension
                     }
 
-                    inputData = system.loadCSV(inputFile, linesToSkip, separator, true, false)
+                    inputData = system.loadCSV(inputFile, firstLine, separator, true, false)
                     outputData = this.replacePattern(inputData, patternString, replacementString, true)
 
                     fileContents = system.createCSV(outputData, separator)
@@ -704,7 +737,7 @@ namespace maiastatistics {
                     fileExtension = inputFile.split(".")
                     fileExtension = fileExtension.pop()
 
-                    inputData = system.loadCSV(inputFile, linesToSkip, separator, true, false)
+                    inputData = system.loadCSV(inputFile, firstLine, separator, true, false)
                     outputData = this.splitData(inputData, nFirst)
 
                     outputFile1 = fileName + "-" + core.toString(outputData.part1.length) + "." + fileExtension
@@ -724,7 +757,7 @@ namespace maiastatistics {
                         outputFile = fileName + "-normalized." + fileExtension
                     }
 
-                    inputData = system.loadCSV(inputFile, linesToSkip, separator, true, true)
+                    inputData = system.loadCSV(inputFile, firstLine, separator, true, true)
                     avgData = this.getAverage(inputData)
                     outputData = this.normalize(inputData, avgData.minimum, avgData.maximum)
 
@@ -758,7 +791,7 @@ namespace maiastatistics {
                         outputFile = fileName + "-denormalized." + fileExtension
                     }
 
-                    inputData = system.loadCSV(inputFile, linesToSkip, separator, true, true)
+                    inputData = system.loadCSV(inputFile, firstLine, separator, true, true)
                     outputData = this.denormalize(inputData, minimum, maximum)
 
                     fileContents = system.createCSV(outputData, separator)
@@ -774,30 +807,171 @@ namespace maiastatistics {
                         outputFile = fileName + "-steps." + fileExtension
                     }
 
-                    inputData = system.loadCSV(inputFile, linesToSkip, separator, true, true)
+                    inputData = system.loadCSV(inputFile, firstLine, separator, true, true)
                     outputData = this.getNextSteps(inputData, steps)
 
                     fileContents = system.createCSV(outputData, separator)
                     fs.writeFileSync(outputFile, fileContents)
-                } elseif (calculatePearson) {
-                    // Get the file without extension.
-                    fileName = inputFile.split(".")
-                    fileName = fileName.shift()
-                    // Get the file name extension.
-                    fileExtension = inputFile.split(".")
-                    fileExtension = fileExtension.pop()
+                } elseif (calculateAverage) {
+                    glob = system.require("glob")
 
-                    inputData = system.loadCSV(inputFile, linesToSkip, separator, true, true)
-                    pearsonCoefficient = this.getPearson(inputData)
+                    files = glob.sync(inputFile)
 
-                    // Saves the report file.
-                    reportFileContents = ""
-                    reportFileContents = reportFileContents + "Pearson coefficient: " + pearsonCoefficient + "\n"
-                    if (reportFile == "") {
-                        reportFile = fileName + "-report-pearson.txt"
+                    if (files.length == 0) {
+                        system.log(maiastatistics.appTitle + " Command Line Interface (CLI)")
+                        system.log("Usage: " + maiastatistics.appName + " [options] [input file] [--] [arguments]")
+                    } else {
+                        system.log("Processing " + files.length + " files...")
+
+                        mavg = []
+                        mdev = []
+                        merr = []
+                        msx = []
+                        msx2 = []
+                        mn = []
+                        
+                        for (fileNumber = 0; fileNumber &lt; files.length; fileNumber = fileNumber + 1) {
+                            // Get the full file name.
+                            file = files[fileNumber]
+
+                            system.log("Processing file '" + file + "'...")
+
+                            // Get the file without extension.
+                            fileName = file.split(".")
+                            fileName = fileName.shift()
+                            // Get the file name extension.
+                            fileExtension = file.split(".")
+                            fileExtension = fileExtension.pop()
+
+                            if (outputAverageFile == "") {
+                                outputAverageFile = "output-avg.csv"
+                            }
+                            if (outputDeviationFile == "") {
+                                outputDeviationFile = "output-dev.csv"
+                            }
+                            if (outputErrorFile == "") {
+                                outputErrorFile = "output-err.csv"
+                            }
+
+                            if (firstLine == "") {
+                                firstLine = 0
+                            }
+                            
+                            inputData = system.loadCSV(file, firstLine, separator, true, true)
+                            dimData = core.dim(inputData)
+                            n = dimData[0]
+                            m = dimData[1]
+                            
+                            // Creates the mavg, mdev, msx, msx2 and mn matrices.
+                            if (mavg == []) {
+                                mavg = core.matrix(0.0, n, m)
+                                mdev = core.matrix(0.0, n, m)
+                                merr = core.matrix(0.0, n, m)
+                                msx = core.matrix(0.0, n, m)
+                                msx2 = core.matrix(0.0, n, m)
+                                mn = core.matrix(0.0, n, m)
+
+                                if (numberOfLines == "") {
+                                    numberOfLines = n
+                                }
+                                if (lastLine == "") {
+                                    lastLine = firstLine + numberOfLines - 1
+                                }
+                            }
+
+                            for (row = firstLine; row &lt;= lastLine; row = row + 1) {
+                                for (col = 0; col &lt; m; col = col + 1) {
+                                    x = inputData[row, col]
+                                    msx[row, col] = msx[row, col] + x
+                                    msx2[row, col] = msx2[row, col] + x * x
+                                    mn[row, col] = mn[row, col] + 1
+                                }
+                            }
+                        }
+                        
+                        // Calculates the averages, deviations and errors.
+                        for (row = firstLine; row &lt;= lastLine; row = row + 1) {
+                            for (col = 0; col &lt; m; col = col + 1) {
+                                mavg[row, col] = msx[row, col] / mn[row, col]
+                                mdev[row, col] = math.sqrt((msx2[row, col] - (msx[row, col] * msx[row, col]) / mn[row, col]) / (mn[row, col] - 1))
+                                merr[row, col] = mdev[row, col] / math.sqrt(mn[row, col])
+                            }
+                        }
+
+                        // Saves the output files.
+                        averagefileContents = system.createCSV(mavg, separator)
+                        fs.writeFileSync(outputAverageFile, averagefileContents)
+
+                        deviationfileContents = system.createCSV(mdev, separator)
+                        fs.writeFileSync(outputDeviationFile, deviationfileContents)
+
+                        errorfileContents = system.createCSV(merr, separator)
+                        fs.writeFileSync(outputErrorFile, errorfileContents)
                     }
-                    fs.writeFileSync(reportFile, reportFileContents)
-                } elseif (doLSQR) {
+                } elseif (calculateSum) {
+                    glob = system.require("glob")
+
+                    files = glob.sync(inputFile)
+
+                    if (files.length == 0) {
+                        system.log(maiastatistics.appTitle + " Command Line Interface (CLI)")
+                        system.log("Usage: " + maiastatistics.appName + " [options] [input file] [--] [arguments]")
+                    } else {
+                        system.log("Processing " + files.length + " files...")
+
+                        msum = []
+                        
+                        for (fileNumber = 0; fileNumber &lt; files.length; fileNumber = fileNumber + 1) {
+                            // Get the full file name.
+                            file = files[fileNumber]
+
+                            system.log("Processing file '" + file + "'...")
+
+                            // Get the file without extension.
+                            fileName = file.split(".")
+                            fileName = fileName.shift()
+                            // Get the file name extension.
+                            fileExtension = file.split(".")
+                            fileExtension = fileExtension.pop()
+
+                            if (outputSumFile == "") {
+                                outputSumFile = "output-sum.csv"
+                            }
+                            
+                            if (firstLine == "") {
+                                firstLine = 0
+                            }
+                            
+                            inputData = system.loadCSV(file, firstLine, separator, true, true)
+                            dimData = core.dim(inputData)
+                            n = dimData[0]
+                            m = dimData[1]
+                            
+                            // Creates the msum matrix.
+                            if (msum == []) {
+                                msum = core.matrix(0.0, n, m)
+                                
+                                if (numberOfLines == "") {
+                                    numberOfLines = n
+                                }
+                                if (lastLine == "") {
+                                    lastLine = firstLine + numberOfLines - 1
+                                }
+                            }
+                            
+                            for (row = firstLine; row &lt;= lastLine; row = row + 1) {
+                                for (col = 0; col &lt; m; col = col + 1) {
+                                    x = inputData[row, col]
+                                    msum[row, col] = msum[row, col] + x
+                                }
+                            }
+                        }
+                        
+                        // Saves the output files.
+                        sumfileContents = system.createCSV(msum, separator)
+                        fs.writeFileSync(outputSumFile, sumfileContents)
+                    }
+                } elseif (calculatePearson) {
                     glob = system.require("glob")
 
                     files = glob.sync(inputFile)
@@ -821,7 +995,45 @@ namespace maiastatistics {
                             fileExtension = file.split(".")
                             fileExtension = fileExtension.pop()
 
-                            inputData = system.loadCSV(file, linesToSkip, separator, true, true)
+                            inputData = system.loadCSV(file, firstLine, separator, true, true)
+                            pearsonCoefficient = this.getPearson(inputData)
+
+                            // Saves the report file.
+                            reportFileContents = ""
+                            reportFileContents = reportFileContents + "Pearson coefficient: " + pearsonCoefficient + "\n"
+                            if (reportFile == "") {
+                                reportFile = fileName + "-report-pearson.txt"
+                            }
+                            fs.writeFileSync(reportFile, reportFileContents)
+
+                            reportFile = ""
+                        }
+                    }
+                } elseif (calculateLSQR) {
+                    glob = system.require("glob")
+
+                    files = glob.sync(inputFile)
+
+                    if (files.length == 0) {
+                        system.log(maiastatistics.appTitle + " Command Line Interface (CLI)")
+                        system.log("Usage: " + maiastatistics.appName + " [options] [input file] [--] [arguments]")
+                    } else {
+                        system.log("Processing " + files.length + " files...")
+
+                        for (fileNumber = 0; fileNumber &lt; files.length; fileNumber = fileNumber + 1) {
+                            // Get the full file name.
+                            file = files[fileNumber]
+
+                            system.log("Processing file '" + file + "'...")
+
+                            // Get the file without extension.
+                            fileName = file.split(".")
+                            fileName = fileName.shift()
+                            // Get the file name extension.
+                            fileExtension = file.split(".")
+                            fileExtension = fileExtension.pop()
+
+                            inputData = system.loadCSV(file, firstLine, separator, true, true)
 
                             // Calculates the least squares fit.
                             lsqr = this.getLsqr(inputData)
@@ -844,7 +1056,7 @@ namespace maiastatistics {
                     glob = system.require("glob")
 
                     files = glob.sync(inputFile)
-                    
+
                     if (files.length == 0) {
                         system.log(maiastatistics.appTitle + " Command Line Interface (CLI)")
                         system.log("Usage: " + maiastatistics.appName + " [options] [input file] [--] [arguments]")
@@ -868,7 +1080,7 @@ namespace maiastatistics {
                                 outputFile = fileName + "-dfa." + fileExtension
                             }
 
-                            inputData = system.loadCSV(file, linesToSkip, separator, true, true)
+                            inputData = system.loadCSV(file, firstLine, separator, true, true)
 
                             // Define the boxes sizes.
                             npts = inputData.length
@@ -953,8 +1165,8 @@ namespace maiastatistics {
                                 outputFile = fileName2 + "-dcca.csv"
                             }
 
-                            inputData1 = system.loadCSV(inputFile1, linesToSkip, separator, true, true)
-                            inputData2 = system.loadCSV(file, linesToSkip, separator, true, true)
+                            inputData1 = system.loadCSV(inputFile1, firstLine, separator, true, true)
+                            inputData2 = system.loadCSV(file, firstLine, separator, true, true)
 
                             // Define the boxes sizes.
                             npts = inputData1.length
@@ -1026,8 +1238,8 @@ namespace maiastatistics {
                                 outputFile = fileName2 + "-rhodcca.csv"
                             }
 
-                            inputData1 = system.loadCSV(inputFile1, linesToSkip, separator, true, true)
-                            inputData2 = system.loadCSV(file, linesToSkip, separator, true, true)
+                            inputData1 = system.loadCSV(inputFile1, firstLine, separator, true, true)
+                            inputData2 = system.loadCSV(file, firstLine, separator, true, true)
 
                             // Define the boxes sizes.
                             npts = inputData1.length
@@ -1106,7 +1318,7 @@ if (core.type(process) != "undefined") {
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.10</a> on Wed Aug 10 2022 22:53:05 GMT+0000 (Coordinated Universal Time)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.10</a> on Thu Aug 11 2022 16:05:13 GMT+0000 (Coordinated Universal Time)
 </footer>
 
 <script> prettyPrint(); </script>
