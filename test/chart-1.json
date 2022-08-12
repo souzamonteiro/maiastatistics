@@ -1,0 +1,31 @@
+data = {
+    "type": "line",
+    "data": {
+        "labels": ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+        "datasets": [{
+                "label": "Dataset 1",
+                "data": [math.random() * 10, math.random() * 10, math.random() * 10, math.random() * 10, math.random() * 10, math.random() * 10, math.random() * 10, math.random() * 10, math.random() * 10, math.random() * 10, math.random() * 10, math.random() * 10],
+                "borderColor": "red",
+                "backgroundColor": "white"
+            },
+            {
+                "label": "Dataset 2",
+                "data": [math.random() * 10, math.random() * 10, math.random() * 10, math.random() * 10, math.random() * 10, math.random() * 10, math.random() * 10, math.random() * 10, math.random() * 10, math.random() * 10, math.random() * 10, math.random() * 10],
+                "borderColor": "blue",
+                "backgroundColor": "white"
+            }
+        ]
+    },
+    "options": {
+        "responsive": true,
+        "plugins": {
+            "legend": {
+                "position": "top"
+            },
+            "title": {
+                "display": true,
+                "text": "Line Chart"
+            }
+        }
+    }
+}

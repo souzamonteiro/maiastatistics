@@ -1,0 +1,9 @@
+data = {
+    "type": "bar",
+    "data": {
+        "datasets": [{
+            "data": [20, 10]
+        }],
+        "labels": ["a", "b"]
+    }
+}

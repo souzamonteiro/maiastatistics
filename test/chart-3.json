@@ -1,0 +1,19 @@
+dataSet = [{"x": 1, "y": 1}, {"x": 2, "y": 2}]
+data = {
+    "type": "line",
+    "data": {
+        "datasets": [{
+            "label": "Dataset 1",
+            "data": dataSet,
+            "borderColor": "red",
+            "backgroundColor": "white"
+        }]
+    },
+    "options": {
+        "scales": {
+            "x": {
+                "type": "linear"
+            }
+        }
+    }
+}
