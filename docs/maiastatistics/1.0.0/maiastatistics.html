@@ -304,7 +304,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="maiastatistics.maia.html">maiastatistics.maia</a>, <a href="maiastatistics.maia.html#line443">line 443</a>
+        <a href="maiastatistics.maia.html">maiastatistics.maia</a>, <a href="maiastatistics.maia.html#line461">line 461</a>
     </li></ul></dd>
     
 
@@ -509,7 +509,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="maiastatistics.maia.html">maiastatistics.maia</a>, <a href="maiastatistics.maia.html#line197">line 197</a>
+        <a href="maiastatistics.maia.html">maiastatistics.maia</a>, <a href="maiastatistics.maia.html#line215">line 215</a>
     </li></ul></dd>
     
 
@@ -668,7 +668,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="maiastatistics.maia.html">maiastatistics.maia</a>, <a href="maiastatistics.maia.html#line114">line 114</a>
+        <a href="maiastatistics.maia.html">maiastatistics.maia</a>, <a href="maiastatistics.maia.html#line132">line 132</a>
     </li></ul></dd>
     
 
@@ -896,7 +896,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="maiastatistics.maia.html">maiastatistics.maia</a>, <a href="maiastatistics.maia.html#line392">line 392</a>
+        <a href="maiastatistics.maia.html">maiastatistics.maia</a>, <a href="maiastatistics.maia.html#line410">line 410</a>
     </li></ul></dd>
     
 
@@ -1124,7 +1124,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="maiastatistics.maia.html">maiastatistics.maia</a>, <a href="maiastatistics.maia.html#line349">line 349</a>
+        <a href="maiastatistics.maia.html">maiastatistics.maia</a>, <a href="maiastatistics.maia.html#line367">line 367</a>
     </li></ul></dd>
     
 
@@ -1333,7 +1333,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="maiastatistics.maia.html">maiastatistics.maia</a>, <a href="maiastatistics.maia.html#line271">line 271</a>
+        <a href="maiastatistics.maia.html">maiastatistics.maia</a>, <a href="maiastatistics.maia.html#line289">line 289</a>
     </li></ul></dd>
     
 
@@ -1697,7 +1697,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="maiastatistics.maia.html">maiastatistics.maia</a>, <a href="maiastatistics.maia.html#line219">line 219</a>
+        <a href="maiastatistics.maia.html">maiastatistics.maia</a>, <a href="maiastatistics.maia.html#line237">line 237</a>
     </li></ul></dd>
     
 
@@ -1856,7 +1856,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="maiastatistics.maia.html">maiastatistics.maia</a>, <a href="maiastatistics.maia.html#line245">line 245</a>
+        <a href="maiastatistics.maia.html">maiastatistics.maia</a>, <a href="maiastatistics.maia.html#line263">line 263</a>
     </li></ul></dd>
     
 
@@ -2061,7 +2061,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="maiastatistics.maia.html">maiastatistics.maia</a>, <a href="maiastatistics.maia.html#line420">line 420</a>
+        <a href="maiastatistics.maia.html">maiastatistics.maia</a>, <a href="maiastatistics.maia.html#line438">line 438</a>
     </li></ul></dd>
     
 
@@ -2102,6 +2102,280 @@
     <dd>
         
 <span class="param-type">object</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id=".loadCSV"><span class="type-signature">(static) </span>loadCSV<span class="signature">(inputFile, numberOfHeaderLines, recordSeparator, allowRepeatChar, doEval, members)</span><span class="type-signature"> &rarr; {array}</span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Loads a CSV file and converts it to an object, using the character indicated as the column separator.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>inputFile</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">CSV file.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>numberOfHeaderLines</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Number of header lines and column descriptors to ignore.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>recordSeparator</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The separator characters.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>allowRepeatChar</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">boolean</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The separator character can be repeated (for formatting).</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>doEval</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">boolean</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Run core.eval before adding the column to the record.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>members</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">array</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Object member names.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="maiastatistics.maia.html">maiastatistics.maia</a>, <a href="maiastatistics.maia.html#line52">line 52</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    The object containing the parts of the CSV or NULL if the CSV record is not well formed.
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">array</span>
 
 
     </dd>
@@ -2266,7 +2540,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="maiastatistics.maia.html">maiastatistics.maia</a>, <a href="maiastatistics.maia.html#line170">line 170</a>
+        <a href="maiastatistics.maia.html">maiastatistics.maia</a>, <a href="maiastatistics.maia.html#line188">line 188</a>
     </li></ul></dd>
     
 
@@ -2494,7 +2768,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="maiastatistics.maia.html">maiastatistics.maia</a>, <a href="maiastatistics.maia.html#line52">line 52</a>
+        <a href="maiastatistics.maia.html">maiastatistics.maia</a>, <a href="maiastatistics.maia.html#line70">line 70</a>
     </li></ul></dd>
     
 
@@ -2604,7 +2878,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="maiastatistics.maia.html">maiastatistics.maia</a>, <a href="maiastatistics.maia.html#line465">line 465</a>
+        <a href="maiastatistics.maia.html">maiastatistics.maia</a>, <a href="maiastatistics.maia.html#line483">line 483</a>
     </li></ul></dd>
     
 
@@ -2764,7 +3038,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="maiastatistics.maia.html">maiastatistics.maia</a>, <a href="maiastatistics.maia.html#line87">line 87</a>
+        <a href="maiastatistics.maia.html">maiastatistics.maia</a>, <a href="maiastatistics.maia.html#line105">line 105</a>
     </li></ul></dd>
     
 
@@ -2838,7 +3112,7 @@
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.10</a> on Fri Aug 12 2022 23:25:34 GMT+0000 (Coordinated Universal Time)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.10</a> on Sat Aug 13 2022 13:24:29 GMT+0000 (Coordinated Universal Time)
 </footer>
 
 <script> prettyPrint(); </script>

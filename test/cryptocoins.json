@@ -1,0 +1,74 @@
+config = {
+    "type": "scatter",
+    "data": {
+        "datasets": [
+            {
+            "label": "ADA-USD",
+            "data": maiastatistics.loadCSV("test/cryptocoins/ADA-USD-Close-rhodcca.csv", 1, ",", true, true, ["x", "", "", "", "y"]),
+            "borderColor": "aqua",
+            "backgroundColor": "aqua"
+            },
+            {
+                "label": "BNB-USD",
+                "data": maiastatistics.loadCSV("test/cryptocoins/BNB-USD-Close-rhodcca.csv", 1, ",", true, true, ["x", "", "", "", "y"]),
+                "borderColor": "black",
+                "backgroundColor": "black"
+            },
+            {
+                "label": "BUSD-USD",
+                "data": maiastatistics.loadCSV("test/cryptocoins/BUSD-USD-Close-rhodcca.csv", 1, ",", true, true, ["x", "", "", "", "y"]),
+                "borderColor": "blue",
+                "backgroundColor": "blue"
+            },
+            {
+                "label": "DOGE-USD",
+                "data": maiastatistics.loadCSV("test/cryptocoins/DOGE-USD-Close-rhodcca.csv", 1, ",", true, true, ["x", "", "", "", "y"]),
+                "borderColor": "fuchsia",
+                "backgroundColor": "fuchsia"
+            },
+            {
+                "label": "ETH-USD",
+                "data": maiastatistics.loadCSV("test/cryptocoins/ETH-USD-Close-rhodcca.csv", 1, ",", true, true, ["x", "", "", "", "y"]),
+                "borderColor": "gray",
+                "backgroundColor": "gray"
+            },
+            {
+                "label": "HEX-USD",
+                "data": maiastatistics.loadCSV("test/cryptocoins/HEX-USD-Close-rhodcca.csv", 1, ",", true, true, ["x", "", "", "", "y"]),
+                "borderColor": "green",
+                "backgroundColor": "green"
+            },
+            {
+                "label": "SOL-USD",
+                "data": maiastatistics.loadCSV("test/cryptocoins/SOL-USD-Close-rhodcca.csv", 1, ",", true, true, ["x", "", "", "", "y"]),
+                "borderColor": "lime",
+                "backgroundColor": "lime"
+            },
+            {
+                "label": "USDC-USD",
+                "data": maiastatistics.loadCSV("test/cryptocoins/USDC-USD-Close-rhodcca.csv", 1, ",", true, true, ["x", "", "", "", "y"]),
+                "borderColor": "maroon",
+                "backgroundColor": "maroon"
+            },
+            {
+                "label": "USDT-USD",
+                "data": maiastatistics.loadCSV("test/cryptocoins/USDT-USD-Close-rhodcca.csv", 1, ",", true, true, ["x", "", "", "", "y"]),
+                "borderColor": "navy",
+                "backgroundColor": "navy"
+            },
+            {
+                "label": "XRP-USD",
+                "data": maiastatistics.loadCSV("test/cryptocoins/XRP-USD-Close-rhodcca.csv", 1, ",", true, true, ["x", "", "", "", "y"]),
+                "borderColor": "olive",
+                "backgroundColor": "olive"
+            }
+        ]
+    },
+    "options": {
+        "scales": {
+            "x": {
+                "type": "linear"
+            }
+        }
+    }
+}
