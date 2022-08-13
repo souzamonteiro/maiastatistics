@@ -586,14 +586,11 @@ namespace maiastatistics {
                         system.log("       --steps              Number of next steps.")
                         system.log("       --avg                Calculates the mean values, standard deviations or standard errors of cells from multiple CSV files.")
                         system.log("       --sum                Calculates the sums of cells from multiple CSV files.")
-<<<<<<< HEAD
                         system.log("       --plot               Draw a graphic and save it in PNG format.")
                         system.log("       --width              Chart width.")
                         system.log("       --height             Chart height.")
                         system.log("       --background         Chart background color.")
                         system.log("       --options            Commnand options.")
-=======
->>>>>>> 4f6328276b473de2701c0502915380909206c731
                         system.log("       --pearson            Calculates the Pearson coefficient.")
                         system.log("       --lsqr               Calculates the best curve that approximates a set of points, using the least squares method.")
                         system.log("       --dfa                Calculates the DFA.")
@@ -616,7 +613,6 @@ namespace maiastatistics {
                         i = i + 1
                         reportFile = system.argv[i]
                     } elseif (system.argv[i] == "--i1") {
-<<<<<<< HEAD
                         i = i + 1
                         inputFile1 = system.argv[i]
                     } elseif (system.argv[i] == "--i2") {
@@ -633,24 +629,6 @@ namespace maiastatistics {
                         outputErrorFile = system.argv[i]
                     } elseif (system.argv[i] == "--osum") {
                         i = i + 1
-=======
-                        i = i + 1
-                        inputFile1 = system.argv[i]
-                    } elseif (system.argv[i] == "--i2") {
-                        i = i + 1
-                        inputFile2 = system.argv[i]
-                    } elseif (system.argv[i] == "--oavg") {
-                        i = i + 1
-                        outputAverageFile = system.argv[i]
-                    } elseif (system.argv[i] == "--odev") {
-                        i = i + 1
-                        outputDeviationFile = system.argv[i]
-                    } elseif (system.argv[i] == "--oerr") {
-                        i = i + 1
-                        outputErrorFile = system.argv[i]
-                    } elseif (system.argv[i] == "--osum") {
-                        i = i + 1
->>>>>>> 4f6328276b473de2701c0502915380909206c731
                         outputSumFile = system.argv[i]
                     } elseif (system.argv[i] == "--first") {
                         i = i + 1
@@ -717,7 +695,6 @@ namespace maiastatistics {
                         calculateAverage = true
                     } elseif (system.argv[i] == "--sum") {
                         calculateSum = true
-<<<<<<< HEAD
                     } elseif (system.argv[i] == "--plot") {
                         plotChart = true
                     } elseif (system.argv[i] == "--width") {
@@ -732,8 +709,6 @@ namespace maiastatistics {
                     } elseif (system.argv[i] == "--options") {
                         i = i + 1
                         commandOptions = system.argv[i]
-=======
->>>>>>> 4f6328276b473de2701c0502915380909206c731
                     } elseif (system.argv[i] == "--pearson") {
                         calculatePearson = true
                     } elseif (system.argv[i] == "--lsqr") {
@@ -1042,7 +1017,6 @@ namespace maiastatistics {
                         sumfileContents = system.createCSV(msum, separator)
                         fs.writeFileSync(outputSumFile, sumfileContents)
                     }
-<<<<<<< HEAD
                 } elseif (plotChart) {
                     configuration = core.eval(readFile(inputFile))
 
@@ -1074,35 +1048,6 @@ namespace maiastatistics {
                             inputData = system.loadCSV(file, firstLine, separator, true, true)
                             pearsonCoefficient = this.getPearson(inputData)
 
-=======
-                } elseif (calculatePearson) {
-                    glob = system.require("glob")
-
-                    files = glob.sync(inputFile)
-
-                    if (files.length == 0) {
-                        system.log(maiastatistics.appTitle + " Command Line Interface (CLI)")
-                        system.log("Usage: " + maiastatistics.appName + " [options] [input file] [--] [arguments]")
-                    } else {
-                        system.log("Processing " + files.length + " files...")
-
-                        for (fileNumber = 0; fileNumber &lt; files.length; fileNumber = fileNumber + 1) {
-                            // Get the full file name.
-                            file = files[fileNumber]
-
-                            system.log("Processing file '" + file + "'...")
-
-                            // Get the file without extension.
-                            fileName = file.split(".")
-                            fileName = fileName.shift()
-                            // Get the file name extension.
-                            fileExtension = file.split(".")
-                            fileExtension = fileExtension.pop()
-
-                            inputData = system.loadCSV(file, firstLine, separator, true, true)
-                            pearsonCoefficient = this.getPearson(inputData)
-
->>>>>>> 4f6328276b473de2701c0502915380909206c731
                             // Saves the report file.
                             reportFileContents = ""
                             reportFileContents = reportFileContents + "Pearson coefficient: " + pearsonCoefficient + "\n"
@@ -1423,11 +1368,7 @@ if (core.type(process) != "undefined") {
 <br class="clear">
 
 <footer>
-<<<<<<< HEAD
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.10</a> on Fri Aug 12 2022 01:06:39 GMT+0000 (Coordinated Universal Time)
-=======
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.10</a> on Thu Aug 11 2022 16:05:13 GMT+0000 (Coordinated Universal Time)
->>>>>>> 4f6328276b473de2701c0502915380909206c731
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.10</a> on Fri Aug 12 2022 23:25:34 GMT+0000 (Coordinated Universal Time)
 </footer>
 
 <script> prettyPrint(); </script>
