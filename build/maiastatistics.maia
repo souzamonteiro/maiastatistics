@@ -448,17 +448,18 @@ namespace maiastatistics {
     /// @method createChart
     /// @memberof maiastatistics
     /// @param {string}   outputFile - Output file in PNG format.
+    /// @param {string}   type - File output format.
     /// @param {number}   width - Chart width.
     /// @param {number}   height - Chart height.
     /// @param {string}   backgroundColor - Chart background color.
     /// @param {object}   configuration - Chart configuration in chartjs-node-canvas format.
     /// @return {object}  Saves a graphic in PNG format.
     ///
-    function createChart(outputFile, width, height, backgroundColor, configuration) {
+    function createChart(outputFile, type, width, height, backgroundColor, configuration) {
         ChartJSNodeCanvas = system.require("chartjs-node-canvas")
         fs = system.require("fs")
         
-        chartJSNodeCanvas := ChartJSNodeCanvas.ChartJSNodeCanvas({"type": "png", "width": width, "height": height, "backgroundColour": backgroundColor})
+        chartJSNodeCanvas := ChartJSNodeCanvas.ChartJSNodeCanvas({"type": type, "width": width, "height": height, "backgroundColour": backgroundColor})
 
         image = chartJSNodeCanvas.renderToBufferSync(configuration)
         fs.writeFileSync(outputFile, image, "base64")
@@ -494,6 +495,7 @@ namespace maiastatistics {
             outputDeviationFile = ""
             outputErrorFile = ""
             outputSumFile = ""
+            fileType = "png"
             reportFile = ""
             firstLine = 0
             lastLine = ""
@@ -546,6 +548,7 @@ namespace maiastatistics {
                         system.log("-h     --help               Displays this help message.")
                         system.log("-i     [input file]         Input file name.")
                         system.log("-o     [output file]        Output file name.")
+                        system.log("-t                          File output format.")
                         system.log("-r                          Statistics report file.")
                         system.log("       --i1                 Input CSV file name 1.")
                         system.log("       --i2                 Input CSV file name 2.")
@@ -598,6 +601,9 @@ namespace maiastatistics {
                     } elseif (system.argv[i] == "-o") {
                         i = i + 1
                         outputFile = system.argv[i]
+                    } elseif (system.argv[i] == "-t") {
+                        i = i + 1
+                        fileType = system.argv[i]
                     } elseif (system.argv[i] == "-r") {
                         i = i + 1
                         reportFile = system.argv[i]
@@ -1001,7 +1007,7 @@ namespace maiastatistics {
                 } elseif (plotChart) {
                     configuration = eval(readFile(inputFile))
 
-                    this.createChart(outputFile, width, height, backgroundColor, configuration)
+                    this.createChart(outputFile, fileType, width, height, backgroundColor, configuration)
                 } elseif (calculatePearson) {
                     glob = system.require("glob")
 
