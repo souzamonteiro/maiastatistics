@@ -28,7 +28,8 @@ namespace maiastatistics {
     appName = "maiastatistics"
     scriptPath = "./"
     dfaLibrary = this.scriptPath + "/maia/dfa/dfa.maia"
-    
+    statisticsLibrary = this.scriptPath + "/maia/statistics/statistics.maia"
+
     /// Starts the application and processes the data passed as command line arguments.
     /// @method run
     /// @memberof maiastatistics
