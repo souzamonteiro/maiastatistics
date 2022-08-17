@@ -426,8 +426,7 @@ namespace maiastatistics {
                     files = glob.sync(inputFile)
 
                     if (files.length == 0) {
-                        system.log(maiastatistics.appTitle + " Command Line Interface (CLI)")
-                        system.log("Usage: " + maiastatistics.appName + " [options] [input file] [--] [arguments]")
+                        system.log("File '" + inputFile + "' not found.")
                     } else {
                         system.log("Processing " + files.length + " files...")
 
@@ -518,8 +517,7 @@ namespace maiastatistics {
                     files = glob.sync(inputFile)
 
                     if (files.length == 0) {
-                        system.log(maiastatistics.appTitle + " Command Line Interface (CLI)")
-                        system.log("Usage: " + maiastatistics.appName + " [options] [input file] [--] [arguments]")
+                        system.log("File '" + inputFile + "' not found.")
                     } else {
                         system.log("Processing " + files.length + " files...")
 
@@ -581,8 +579,7 @@ namespace maiastatistics {
                     files = glob.sync(inputFile)
 
                     if (files.length == 0) {
-                        system.log(maiastatistics.appTitle + " Command Line Interface (CLI)")
-                        system.log("Usage: " + maiastatistics.appName + " [options] [input file] [--] [arguments]")
+                        system.log("File '" + inputFile + "' not found.")
                     } else {
                         system.log("Processing " + files.length + " files...")
 
@@ -619,8 +616,7 @@ namespace maiastatistics {
                     files = glob.sync(inputFile)
 
                     if (files.length == 0) {
-                        system.log(maiastatistics.appTitle + " Command Line Interface (CLI)")
-                        system.log("Usage: " + maiastatistics.appName + " [options] [input file] [--] [arguments]")
+                        system.log("File '" + inputFile + "' not found.")
                     } else {
                         system.log("Processing " + files.length + " files...")
 
@@ -662,8 +658,7 @@ namespace maiastatistics {
                     files = glob.sync(inputFile)
 
                     if (files.length == 0) {
-                        system.log(maiastatistics.appTitle + " Command Line Interface (CLI)")
-                        system.log("Usage: " + maiastatistics.appName + " [options] [input file] [--] [arguments]")
+                        system.log("File '" + inputFile + "' not found.")
                     } else {
                         system.log("Processing " + files.length + " files...")
 
@@ -746,8 +741,7 @@ namespace maiastatistics {
                     files = glob.sync(inputFile2)
                     
                     if (files.length == 0) {
-                        system.log(maiastatistics.appTitle + " Command Line Interface (CLI)")
-                        system.log("Usage: " + maiastatistics.appName + " [options] [input file] [--] [arguments]")
+                        system.log("File '" + inputFile + "' not found.")
                     } else {
                         system.log("Processing " + files.length + " files...")
 
@@ -819,8 +813,7 @@ namespace maiastatistics {
                     files = glob.sync(inputFile2)
                     
                     if (files.length == 0) {
-                        system.log(maiastatistics.appTitle + " Command Line Interface (CLI)")
-                        system.log("Usage: " + maiastatistics.appName + " [options] [input file] [--] [arguments]")
+                        system.log("File '" + inputFile + "' not found.")
                     } else {
                         system.log("Processing " + files.length + " files...")
 
