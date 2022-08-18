@@ -41,6 +41,46 @@ namespace statistics {
     }
 
     ///
+    /// Create a matrix containing the columns from two other matrices.
+    /// @method mergeMatrices
+    /// @memberof statistics
+    /// @param {object}   m1 - The first matrix.
+    /// @param {object}   m2 - The second matrix.
+    /// @param {number}   interlace - Interlace the columns.
+    /// @return {object}  Returns a matrix containing the columns from two other matrices.
+    ///
+    function mergeMatrices(m1, m2, interlace) {
+        if (core.type(interlace) == "undefined") {
+            interlace = false
+        }
+        m1Dim = core.dim(m1)
+        m = []
+        for (i = 0; i < m1Dim[0]; i = i + 1) {
+            row = []
+            if (m1Dim.length == 2) {
+                if (interlace) {
+                    for (j = 0; j < m1Dim[1]; j = j + 1) {
+                        row.push(m1[i, j])
+                        row.push(m2[i, j])
+                    }
+                } else {
+                    for (j = 0; j < m1Dim[1]; j = j + 1) {
+                        row.push(m1[i, j])
+                    }
+                    for (j = 0; j < m1Dim[1]; j = j + 1) {
+                        row.push(m2[i, j])
+                    }
+                }
+            } else {
+                row.push(m1[i])
+                row.push(m2[i])
+            }
+            m.push(row)
+        }
+        return(m)
+    }
+
+    ///
     /// Loads a CSV file and converts it to an object, using the character indicated as the column separator.
     /// @method loadCSV
     /// @memberof statistics
@@ -170,6 +210,38 @@ namespace statistics {
             "n": n
         }
         return(returnObject)
+    }
+
+    ///
+    /// Returns the distribution probability for a normal distribution.
+    /// @method getNormalProbability
+    /// @memberof statistics
+    /// @param {number}   x - The value of x.
+    /// @param {number}   m - The mean of the series.
+    /// @param {number}   s - The standard deviation of the series.
+    /// @return {number}  Returns the distribution probability for a normal distribution.
+    ///
+    function getNormalProbability(x, m, s) {
+        p = (1 / (s * math.sqrt(2 * math.PI))) * math.exp((-1 / 2) * math.pow((x - m) / s, 2))
+        return(p)
+    }
+
+    ///
+    /// Returns an array containing the distribution probability for a normal distribution.
+    /// @method getNormalProbability
+    /// @memberof statistics
+    /// @param {object}   x - The array containing the values of x.
+    /// @param {number}   m - The mean of the series.
+    /// @param {number}   s - The standard deviation of the series.
+    /// @return {number}  Returns the distribution probability for a normal distribution.
+    ///
+    function getNormalDistribution(x, m, s) {
+        normalDistribution = []
+        for (i = 0; i < x.length; i = i + 1) {
+            p = this.getNormalProbability(x[i], m, s)
+            normalDistribution.push(p)
+        }
+        return(normalDistribution)
     }
 
     ///

@@ -116,6 +116,10 @@ namespace maiastatistics {
             steps = 1
             calculateAverage = false
             calculateSum = false
+            calculateNormalDistribution = false
+            series = []
+            mean = 0
+            deviation = 0
             calculatePearson = false
             calculateLSQR = false
             calculateDFA = false
@@ -173,6 +177,10 @@ namespace maiastatistics {
                         system.log("       --steps              Number of next steps.")
                         system.log("       --avg                Calculates the mean values, standard deviations or standard errors of cells from multiple CSV files.")
                         system.log("       --sum                Calculates the sums of cells from multiple CSV files.")
+                        system.log("       --normal             Calculates a normal distribution.")
+                        system.log("       --series             The array containing the values of x.")
+                        system.log("       --mean               The mean of the series.")
+                        system.log("       --deviation          The standard deviation of the series.")
                         system.log("       --plot               Draw a graphic and save it in PNG format.")
                         system.log("       --width              Chart width.")
                         system.log("       --height             Chart height.")
@@ -285,6 +293,17 @@ namespace maiastatistics {
                         calculateAverage = true
                     } elseif (system.argv[i] == "--sum") {
                         calculateSum = true
+                    } elseif (system.argv[i] == "--normal") {
+                        calculateNormalDistribution = true
+                    } elseif (system.argv[i] == "--series") {
+                        i = i + 1
+                        series = core.eval(system.argv[i])
+                    } elseif (system.argv[i] == "--mean") {
+                        i = i + 1
+                        mean = core.toNumber(system.argv[i])
+                    } elseif (system.argv[i] == "--deviation") {
+                        i = i + 1
+                        deviation = core.toNumber(system.argv[i])
                     } elseif (system.argv[i] == "--plot") {
                         plotChart = true
                     } elseif (system.argv[i] == "--width") {
@@ -454,8 +473,7 @@ namespace maiastatistics {
                     files = glob.sync(inputFile)
 
                     if (files.length == 0) {
-                        system.log(maiastatistics.appTitle + " Command Line Interface (CLI)")
-                        system.log("Usage: " + maiastatistics.appName + " [options] [input file] [--] [arguments]")
+                        system.log("File '" + inputFile + "' not found.")
                     } else {
                         system.log("Processing " + files.length + " files...")
 
@@ -546,8 +564,7 @@ namespace maiastatistics {
                     files = glob.sync(inputFile)
 
                     if (files.length == 0) {
-                        system.log(maiastatistics.appTitle + " Command Line Interface (CLI)")
-                        system.log("Usage: " + maiastatistics.appName + " [options] [input file] [--] [arguments]")
+                        system.log("File '" + inputFile + "' not found.")
                     } else {
                         system.log("Processing " + files.length + " files...")
 
@@ -599,6 +616,36 @@ namespace maiastatistics {
                         sumfileContents = system.createCSV(msum, separator)
                         fs.writeFileSync(outputSumFile, sumfileContents)
                     }
+                } elseif (calculateNormalDistribution) {
+                    // Get the file without extension.
+                    if (inputFile != "") {
+                        fileName = inputFile.split(".")
+                        fileName = fileName.shift()
+                        // Get the file name extension.
+                        fileExtension = inputFile.split(".")
+                        fileExtension = fileExtension.pop()
+                        
+                        inputData = system.loadCSV(inputFile, firstLine, separator, true, false)
+
+                        series = core.matrixToObject(inputData)
+                    } else {
+                        fileName = "output"
+                        fileExtension = "csv"
+                    }
+                    
+                    if (mean == 0 || deviation == 0) {
+                        avg = matrix.avg(series)
+                        mean = avg.avg
+                        deviation = avg.dev
+                    }
+                    normalProbability = statistics.getNormalDistribution(series, mean, deviation)
+                    outputData = statistics.mergeMatrices(series, normalProbability)
+                    
+                    fileContents = system.createCSV(outputData, separator)
+                    if (outputFile == "") {
+                        outputFile = fileName + "-normal." + fileExtension
+                    }
+                    fs.writeFileSync(outputFile, fileContents)
                 } elseif (plotChart) {
                     configuration = eval(readFile(inputFile))
 
@@ -609,8 +656,7 @@ namespace maiastatistics {
                     files = glob.sync(inputFile)
 
                     if (files.length == 0) {
-                        system.log(maiastatistics.appTitle + " Command Line Interface (CLI)")
-                        system.log("Usage: " + maiastatistics.appName + " [options] [input file] [--] [arguments]")
+                        system.log("File '" + inputFile + "' not found.")
                     } else {
                         system.log("Processing " + files.length + " files...")
 
@@ -647,8 +693,7 @@ namespace maiastatistics {
                     files = glob.sync(inputFile)
 
                     if (files.length == 0) {
-                        system.log(maiastatistics.appTitle + " Command Line Interface (CLI)")
-                        system.log("Usage: " + maiastatistics.appName + " [options] [input file] [--] [arguments]")
+                        system.log("File '" + inputFile + "' not found.")
                     } else {
                         system.log("Processing " + files.length + " files...")
 
@@ -690,8 +735,7 @@ namespace maiastatistics {
                     files = glob.sync(inputFile)
 
                     if (files.length == 0) {
-                        system.log(maiastatistics.appTitle + " Command Line Interface (CLI)")
-                        system.log("Usage: " + maiastatistics.appName + " [options] [input file] [--] [arguments]")
+                        system.log("File '" + inputFile + "' not found.")
                     } else {
                         system.log("Processing " + files.length + " files...")
 
@@ -774,8 +818,7 @@ namespace maiastatistics {
                     files = glob.sync(inputFile2)
                     
                     if (files.length == 0) {
-                        system.log(maiastatistics.appTitle + " Command Line Interface (CLI)")
-                        system.log("Usage: " + maiastatistics.appName + " [options] [input file] [--] [arguments]")
+                        system.log("File '" + inputFile + "' not found.")
                     } else {
                         system.log("Processing " + files.length + " files...")
 
@@ -847,8 +890,7 @@ namespace maiastatistics {
                     files = glob.sync(inputFile2)
                     
                     if (files.length == 0) {
-                        system.log(maiastatistics.appTitle + " Command Line Interface (CLI)")
-                        system.log("Usage: " + maiastatistics.appName + " [options] [input file] [--] [arguments]")
+                        system.log("File '" + inputFile + "' not found.")
                     } else {
                         system.log("Processing " + files.length + " files...")
 
@@ -950,7 +992,7 @@ if (core.type(process) != "undefined") {
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.10</a> on Wed Aug 17 2022 20:15:24 GMT+0000 (Coordinated Universal Time)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.10</a> on Thu Aug 18 2022 15:12:33 GMT+0000 (Coordinated Universal Time)
 </footer>
 
 <script> prettyPrint(); </script>
