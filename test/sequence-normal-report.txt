@@ -1,0 +1,3 @@
+Average: 499.5
+Standard deviation: 288.8194360957494
+Observations: 1000

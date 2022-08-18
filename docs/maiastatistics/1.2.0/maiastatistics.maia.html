@@ -118,8 +118,8 @@ namespace maiastatistics {
             calculateSum = false
             calculateNormalDistribution = false
             series = []
-            mean = 0
-            deviation = 0
+            mean = ""
+            deviation = ""
             calculatePearson = false
             calculateLSQR = false
             calculateDFA = false
@@ -619,33 +619,92 @@ namespace maiastatistics {
                 } elseif (calculateNormalDistribution) {
                     // Get the file without extension.
                     if (inputFile != "") {
-                        fileName = inputFile.split(".")
-                        fileName = fileName.shift()
-                        // Get the file name extension.
-                        fileExtension = inputFile.split(".")
-                        fileExtension = fileExtension.pop()
-                        
-                        inputData = system.loadCSV(inputFile, firstLine, separator, true, false)
+                        glob = system.require("glob")
 
-                        series = core.matrixToObject(inputData)
+                        files = glob.sync(inputFile)
+
+                        if (files.length == 0) {
+                            system.log("File '" + inputFile + "' not found.")
+                        } else {
+                            system.log("Processing " + files.length + " files...")
+
+                            for (fileNumber = 0; fileNumber &lt; files.length; fileNumber = fileNumber + 1) {
+                                // Get the full file name.
+                                file = files[fileNumber]
+
+                                system.log("Processing file '" + file + "'...")
+
+                                // Get the file without extension.
+                                fileName = file.split(".")
+                                fileName = fileName.shift()
+                                // Get the file name extension.
+                                fileExtension = file.split(".")
+                                fileExtension = fileExtension.pop()
+                                
+                                inputData = system.loadCSV(file, firstLine, separator, true, true)
+                                series = core.matrixToArray(inputData)
+
+                                if (mean == "" || deviation == "") {
+                                    avg = matrix.avg(series)
+                                    if (core.type(mean) != "number") {
+                                        mean = avg.avg
+                                    }
+                                    if (core.type(deviation) != "number") {
+                                        deviation = avg.dev
+                                    }
+                                }
+                                normalProbability = statistics.getNormalDistribution(series, mean, deviation)
+                                outputData = statistics.mergeMatrices(series, normalProbability)
+                               
+                                fileContents = system.createCSV(outputData, separator)
+                                outputFile = fileName + "-normal." + fileExtension
+                                fs.writeFileSync(outputFile, fileContents)
+
+                                // Saves the report file.
+                                reportFileContents = ""
+                                reportFileContents = reportFileContents + "Average: " + core.toString(mean) + "\n"
+                                reportFileContents = reportFileContents + "Standard deviation: " + core.toString(deviation) + "\n"
+                                reportFileContents = reportFileContents + "Observations: "  + core.toString(series.length) + "\n"
+                                reportFile = fileName + "-normal-report.txt"
+                                fs.writeFileSync(reportFile, reportFileContents)
+                            }
+                        }
                     } else {
-                        fileName = "output"
-                        fileExtension = "csv"
-                    }
-                    
-                    if (mean == 0 || deviation == 0) {
-                        avg = matrix.avg(series)
-                        mean = avg.avg
-                        deviation = avg.dev
-                    }
-                    normalProbability = statistics.getNormalDistribution(series, mean, deviation)
-                    outputData = statistics.mergeMatrices(series, normalProbability)
-                    
-                    fileContents = system.createCSV(outputData, separator)
-                    if (outputFile == "") {
+                        if (mean == "" || deviation == "") {
+                            avg = matrix.avg(series)
+                            if (core.type(mean) != "number") {
+                                mean = avg.avg
+                            }
+                            if (core.type(deviation) != "number") {
+                                deviation = avg.dev
+                            }
+                        }
+                        normalProbability = statistics.getNormalDistribution(series, mean, deviation)
+                        outputData = statistics.mergeMatrices(series, normalProbability)
+                        
+                        if (outputFile == "") {
+                            fileName = "output"
+                        } else {
+                            // Get the file without extension.
+                            fileName = outputFile.split(".")
+                            fileName = fileName.shift()
+                            // Get the file name extension.
+                            fileExtension = outputFile.split(".")
+                            fileExtension = fileExtension.pop()
+                        }
+
+                        fileContents = system.createCSV(outputData, separator)
                         outputFile = fileName + "-normal." + fileExtension
+                        fs.writeFileSync(outputFile, fileContents)
+
+                        // Saves the report file.
+                        reportFileContents = ""
+                        reportFileContents = reportFileContents + "Average: " + core.toString(mean) + "\n"
+                        reportFileContents = reportFileContents + "Standard deviation: " + core.toString(deviation) + "\n"
+                        reportFileContents = reportFileContents + "Observations: "  + core.toString(series.length) + "\n"
+                        reportFile = fileName + "-normal-report.txt"
+                        fs.writeFileSync(reportFile, reportFileContents)
                     }
-                    fs.writeFileSync(outputFile, fileContents)
                 } elseif (plotChart) {
                     configuration = eval(readFile(inputFile))
 
@@ -992,7 +1051,7 @@ if (core.type(process) != "undefined") {
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.10</a> on Thu Aug 18 2022 15:12:33 GMT+0000 (Coordinated Universal Time)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.10</a> on Thu Aug 18 2022 19:23:32 GMT+0000 (Coordinated Universal Time)
 </footer>
 
 <script> prettyPrint(); </script>

@@ -222,7 +222,7 @@ namespace statistics {
     /// @return {number}  Returns the distribution probability for a normal distribution.
     ///
     function getNormalProbability(x, m, s) {
-        p = (1 / (s * math.sqrt(2 * math.PI))) * math.exp((-1 / 2) * math.pow((x - m) / s, 2))
+        p = (1 / (s * math.sqrt(2 * math.PI))) * math.exp((-1 * math.pow(x - m, 2)) / (2 * math.pow(s, 2)))
         return(p)
     }
 
