@@ -40,7 +40,7 @@ namespace statistics {
     ///
     function rand() {
         this.next = BigInt(this.next * BigInt(1103515245) + BigInt(12345))
-        return(Number((this.next / BigInt(65536)) % BigInt(32768)) / this.RAND_MAX)
+        return(Number((this.next / BigInt(65536)) % BigInt(32768)) / (this.RAND_MAX + 1))
     }
 
     ///
@@ -95,7 +95,8 @@ namespace statistics {
     function getGaussianNoiseScaled(mean, deviation) {
         r = this.getGaussianNoise()
         r = r * deviation + mean
-        return(math.round(r))
+        //return(math.round(r))
+        return(r)
     }
 
     ///
@@ -109,7 +110,8 @@ namespace statistics {
     function getGaussianNoiseLogScaled(mean, deviation) {
         r = this.getGaussianNoise()
         r = r * math.log(deviation) + math.log(mean)
-        return(math.round(math.exp(r)))
+        //return(math.round(math.exp(r)))
+        return(math.exp(r))
     }
 
     ///
@@ -141,7 +143,7 @@ namespace statistics {
         sequence = []
         for (i = 0; i < numberOfElements; i = i + 1) {
             noise = this.getGaussianNoiseScaled(mean, deviation)
-            if (noise == "NaN") {
+            if (core.toString(noise) == "NaN") {
                 noise = 0
             }
             sequence.push(noise)
