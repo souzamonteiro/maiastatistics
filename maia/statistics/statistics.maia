@@ -23,6 +23,75 @@
 /// @namespace statistics
 ///
 namespace statistics {
+    // Random number generator initialization variables. 
+    RAND_MAX = 32768
+    next = 1
+    hasSpare = false
+
+    ///
+    /// Random number generator.
+    /// @method rand
+    /// @memberof statistics
+    /// @return {object}  Returns a pseudo-random number sequence.
+    ///
+    function rand() {
+        this.next = math.round(this.next * 1103515245 + 12345)
+        return(((this.next / 65536) % 32768) / 32768)
+    }
+
+    ///
+    /// Defines a new seed for the random number generator.
+    /// @method srand
+    /// @memberof statistics
+    /// @param {object}   seed - The time series.
+    /// @return {object}  Returns a new seed for the random number generator.
+    ///
+    function srand(seed) {
+        this.next = seed
+    }
+
+    ///
+    /// The Marsaglia polar method for generating a random number with a Gaussian distribution.
+    /// @method getGaussianNoise
+    /// @memberof statistics
+    /// @param {number}   mean - The mean of the series.
+    /// @param {number}   deviation - The standard deviation of the series.
+    /// @return {number}  Returns a random number with a Gaussian distribution.
+    ///
+    function getGaussianNoise(mean, deviation) {
+        if (this.hasSpare) {
+            this.hasSpare = false
+            return(pare * deviation + mean)
+        } else {
+            while (s >= 1.0 || s == 0.0) {
+                u = (this.rand() / this.RAND_MAX) * 2.0 - 1.0
+                v = (this.rand() / this.RAND_MAX) * 2.0 - 1.0
+                s = u * u + v * v
+            }
+            s = math.sqrt(-2.0 * math.log(s) / s)
+            spare = v * s
+            this.hasSpare = true
+            return(mean + deviation * u * s)
+        }
+    }
+
+    ///
+    /// The Marsaglia polar method for generating a random number with a Gaussian distribution.
+    /// @method getGaussianSequence
+    /// @memberof statistics
+    /// @param {number}   numberOfElements - Number of elements in the sequence that will be generated.
+    /// @param {number}   mean - The mean of the series.
+    /// @param {number}   deviation - The standard deviation of the series.
+    /// @return {number}  Returns a random number sequence with a Gaussian distribution.
+    ///
+    function getGaussianSequence(numberOfElements, mean, deviation) {
+        sequence = []
+        for (i = 0; i < numberOfElements; i = i + 1) {
+            sequence.push(this.getGaussianNoise(mean, deviation))
+        }
+        return(sequence)
+    }
+
     ///
     /// Creates a new time series containing only the specified column.
     /// @method getNextSteps

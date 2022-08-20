@@ -117,6 +117,7 @@ namespace maiastatistics {
             calculateAverage = false
             calculateSum = false
             calculateNormalDistribution = false
+            calculateGaussianSequence = true
             series = []
             mean = ""
             deviation = ""
@@ -149,6 +150,7 @@ namespace maiastatistics {
                         system.log("-o     [output file]        Output file name.")
                         system.log("-t                          File output format.")
                         system.log("-r                          Statistics report file.")
+                        system.log("-n                          Number of elements in the sequence that will be generated.")
                         system.log("       --i1                 Input CSV file name 1.")
                         system.log("       --i2                 Input CSV file name 2.")
                         system.log("       --oavg               Average output CSV file.")
@@ -181,6 +183,7 @@ namespace maiastatistics {
                         system.log("       --series             The array containing the values of x.")
                         system.log("       --mean               The mean of the series.")
                         system.log("       --deviation          The standard deviation of the series.")
+                        system.log("       --gaussian           Generates a random number sequence with a Gaussian distribution.")
                         system.log("       --plot               Draw a graphic and save it in PNG format.")
                         system.log("       --width              Chart width.")
                         system.log("       --height             Chart height.")
@@ -210,6 +213,9 @@ namespace maiastatistics {
                     } elseif (system.argv[i] == "-r") {
                         i = i + 1
                         reportFile = system.argv[i]
+                    } elseif (system.argv[i] == "-n") {
+                        i = i + 1
+                        numberOfElements = core.toNumber(system.argv[i])
                     } elseif (system.argv[i] == "--i1") {
                         i = i + 1
                         inputFile1 = system.argv[i]
@@ -295,6 +301,8 @@ namespace maiastatistics {
                         calculateSum = true
                     } elseif (system.argv[i] == "--normal") {
                         calculateNormalDistribution = true
+                    } elseif (system.argv[i] == "--gaussian") {
+                        calculateGaussianSequence = true
                     } elseif (system.argv[i] == "--series") {
                         i = i + 1
                         series = core.eval(system.argv[i])
@@ -683,19 +691,14 @@ namespace maiastatistics {
                         outputData = statistics.mergeMatrices(series, normalProbability)
                         
                         if (outputFile == "") {
-                            fileName = "output"
-                        } else {
-                            // Get the file without extension.
-                            fileName = outputFile.split(".")
-                            fileName = fileName.shift()
-                            // Get the file name extension.
-                            fileExtension = outputFile.split(".")
-                            fileExtension = fileExtension.pop()
+                            outputFile = "output-normal.csv"
                         }
-
-                        fileContents = system.createCSV(outputData, separator)
-                        outputFile = fileName + "-normal." + fileExtension
-                        fs.writeFileSync(outputFile, fileContents)
+                        // Get the file without extension.
+                        fileName = outputFile.split(".")
+                        fileName = fileName.shift()
+                        // Get the file name extension.
+                        fileExtension = outputFile.split(".")
+                        fileExtension = fileExtension.pop()
 
                         // Saves the report file.
                         reportFileContents = ""
@@ -705,6 +708,44 @@ namespace maiastatistics {
                         reportFile = fileName + "-normal-report.txt"
                         fs.writeFileSync(reportFile, reportFileContents)
                     }
+                } elseif (calculateGaussianSequence) {
+                    if (mean == "" || deviation == "") {
+                            mean = 0
+                            deviation = 1
+                    }
+
+                    system.log(math.random())
+                    system.log(statistics.rand())
+                    system.log(statistics.rand())
+                    system.log(statistics.rand())
+                    system.log(statistics.rand())
+                    system.log(statistics.rand())
+                    system.log(statistics.rand())
+                    system.log(statistics.rand())
+                    process.exit()
+                    gaussianSequance = statistics.getGaussianSequence(numberOfElements, mean, deviation)
+                    outputData = core.arrayToMatrix(gaussianSequance)
+                    
+                    if (outputFile == "") {
+                        outputFile = "output-gaussian.csv"
+                    }
+                    // Get the file without extension.
+                    fileName = outputFile.split(".")
+                    fileName = fileName.shift()
+                    // Get the file name extension.
+                    fileExtension = outputFile.split(".")
+                    fileExtension = fileExtension.pop()
+
+                    fileContents = system.createCSV(outputData, separator)
+                    fs.writeFileSync(outputFile, fileContents)
+
+                    // Saves the report file.
+                    reportFileContents = ""
+                    reportFileContents = reportFileContents + "Average: " + core.toString(mean) + "\n"
+                    reportFileContents = reportFileContents + "Standard deviation: " + core.toString(deviation) + "\n"
+                    reportFileContents = reportFileContents + "Observations: "  + core.toString(numberOfElements) + "\n"
+                    reportFile = fileName + "-gaussian-report.txt"
+                    fs.writeFileSync(reportFile, reportFileContents)
                 } elseif (plotChart) {
                     configuration = eval(readFile(inputFile))
 
@@ -1051,7 +1092,7 @@ if (core.type(process) != "undefined") {
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.10</a> on Thu Aug 18 2022 19:23:32 GMT+0000 (Coordinated Universal Time)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.10</a> on Sat Aug 20 2022 00:02:00 GMT+0000 (Coordinated Universal Time)
 </footer>
 
 <script> prettyPrint(); </script>

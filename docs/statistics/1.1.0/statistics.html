@@ -327,7 +327,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="statistics.maia.html">statistics.maia</a>, <a href="statistics.maia.html#line530">line 530</a>
+        <a href="statistics.maia.html">statistics.maia</a>, <a href="statistics.maia.html#line603">line 603</a>
     </li></ul></dd>
     
 
@@ -532,7 +532,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="statistics.maia.html">statistics.maia</a>, <a href="statistics.maia.html#line284">line 284</a>
+        <a href="statistics.maia.html">statistics.maia</a>, <a href="statistics.maia.html#line357">line 357</a>
     </li></ul></dd>
     
 
@@ -691,7 +691,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="statistics.maia.html">statistics.maia</a>, <a href="statistics.maia.html#line167">line 167</a>
+        <a href="statistics.maia.html">statistics.maia</a>, <a href="statistics.maia.html#line240">line 240</a>
     </li></ul></dd>
     
 
@@ -919,7 +919,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="statistics.maia.html">statistics.maia</a>, <a href="statistics.maia.html#line479">line 479</a>
+        <a href="statistics.maia.html">statistics.maia</a>, <a href="statistics.maia.html#line552">line 552</a>
     </li></ul></dd>
     
 
@@ -1147,7 +1147,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="statistics.maia.html">statistics.maia</a>, <a href="statistics.maia.html#line436">line 436</a>
+        <a href="statistics.maia.html">statistics.maia</a>, <a href="statistics.maia.html#line509">line 509</a>
     </li></ul></dd>
     
 
@@ -1188,6 +1188,393 @@
     <dd>
         
 <span class="param-type">object</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id=".getGaussianNoise"><span class="type-signature">(static) </span>getGaussianNoise<span class="signature">(mean, deviation)</span><span class="type-signature"> &rarr; {number}</span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    The Marsaglia polar method for generating a random number with a Gaussian distribution.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>mean</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The mean of the series.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>deviation</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The standard deviation of the series.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="statistics.maia.html">statistics.maia</a>, <a href="statistics.maia.html#line57">line 57</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    Returns a random number with a Gaussian distribution.
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">number</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id=".getGaussianSequence"><span class="type-signature">(static) </span>getGaussianSequence<span class="signature">(numberOfElements, mean, deviation)</span><span class="type-signature"> &rarr; {number}</span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    The Marsaglia polar method for generating a random number with a Gaussian distribution.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>numberOfElements</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Number of elements in the sequence that will be generated.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>mean</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The mean of the series.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>deviation</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The standard deviation of the series.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="statistics.maia.html">statistics.maia</a>, <a href="statistics.maia.html#line83">line 83</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    Returns a random number sequence with a Gaussian distribution.
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">number</span>
 
 
     </dd>
@@ -1356,7 +1743,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="statistics.maia.html">statistics.maia</a>, <a href="statistics.maia.html#line358">line 358</a>
+        <a href="statistics.maia.html">statistics.maia</a>, <a href="statistics.maia.html#line431">line 431</a>
     </li></ul></dd>
     
 
@@ -1538,7 +1925,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="statistics.maia.html">statistics.maia</a>, <a href="statistics.maia.html#line28">line 28</a>
+        <a href="statistics.maia.html">statistics.maia</a>, <a href="statistics.maia.html#line101">line 101</a>
     </li></ul></dd>
     
 
@@ -1720,7 +2107,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="statistics.maia.html">statistics.maia</a>, <a href="statistics.maia.html#line306">line 306</a>
+        <a href="statistics.maia.html">statistics.maia</a>, <a href="statistics.maia.html#line379">line 379</a>
     </li></ul></dd>
     
 
@@ -1925,7 +2312,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="statistics.maia.html">statistics.maia</a>, <a href="statistics.maia.html#line223">line 223</a>
+        <a href="statistics.maia.html">statistics.maia</a>, <a href="statistics.maia.html#line296">line 296</a>
     </li></ul></dd>
     
 
@@ -2130,7 +2517,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="statistics.maia.html">statistics.maia</a>, <a href="statistics.maia.html#line238">line 238</a>
+        <a href="statistics.maia.html">statistics.maia</a>, <a href="statistics.maia.html#line311">line 311</a>
     </li></ul></dd>
     
 
@@ -2289,7 +2676,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="statistics.maia.html">statistics.maia</a>, <a href="statistics.maia.html#line332">line 332</a>
+        <a href="statistics.maia.html">statistics.maia</a>, <a href="statistics.maia.html#line405">line 405</a>
     </li></ul></dd>
     
 
@@ -2494,7 +2881,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="statistics.maia.html">statistics.maia</a>, <a href="statistics.maia.html#line507">line 507</a>
+        <a href="statistics.maia.html">statistics.maia</a>, <a href="statistics.maia.html#line580">line 580</a>
     </li></ul></dd>
     
 
@@ -2768,7 +3155,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="statistics.maia.html">statistics.maia</a>, <a href="statistics.maia.html#line87">line 87</a>
+        <a href="statistics.maia.html">statistics.maia</a>, <a href="statistics.maia.html#line160">line 160</a>
     </li></ul></dd>
     
 
@@ -2973,7 +3360,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="statistics.maia.html">statistics.maia</a>, <a href="statistics.maia.html#line46">line 46</a>
+        <a href="statistics.maia.html">statistics.maia</a>, <a href="statistics.maia.html#line119">line 119</a>
     </li></ul></dd>
     
 
@@ -3178,7 +3565,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="statistics.maia.html">statistics.maia</a>, <a href="statistics.maia.html#line257">line 257</a>
+        <a href="statistics.maia.html">statistics.maia</a>, <a href="statistics.maia.html#line330">line 330</a>
     </li></ul></dd>
     
 
@@ -3208,6 +3595,116 @@
         
 <div class="param-desc">
     Returns the normalized time series.
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">object</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id=".rand"><span class="type-signature">(static) </span>rand<span class="signature">()</span><span class="type-signature"> &rarr; {object}</span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Random number generator.
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="statistics.maia.html">statistics.maia</a>, <a href="statistics.maia.html#line33">line 33</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    Returns a pseudo-random number sequence.
 </div>
 
 
@@ -3406,7 +3903,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="statistics.maia.html">statistics.maia</a>, <a href="statistics.maia.html#line105">line 105</a>
+        <a href="statistics.maia.html">statistics.maia</a>, <a href="statistics.maia.html#line178">line 178</a>
     </li></ul></dd>
     
 
@@ -3588,7 +4085,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="statistics.maia.html">statistics.maia</a>, <a href="statistics.maia.html#line140">line 140</a>
+        <a href="statistics.maia.html">statistics.maia</a>, <a href="statistics.maia.html#line213">line 213</a>
     </li></ul></dd>
     
 
@@ -3641,6 +4138,165 @@
 
 
         
+            
+
+    
+
+    
+    <h4 class="name" id=".srand"><span class="type-signature">(static) </span>srand<span class="signature">(seed)</span><span class="type-signature"> &rarr; {object}</span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Defines a new seed for the random number generator.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>seed</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The time series.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="statistics.maia.html">statistics.maia</a>, <a href="statistics.maia.html#line45">line 45</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    Returns a new seed for the random number generator.
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">object</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+
+
+        
     
 
     
@@ -3662,7 +4318,7 @@
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.10</a> on Thu Aug 18 2022 19:23:32 GMT+0000 (Coordinated Universal Time)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.10</a> on Sat Aug 20 2022 00:02:01 GMT+0000 (Coordinated Universal Time)
 </footer>
 
 <script> prettyPrint(); </script>
