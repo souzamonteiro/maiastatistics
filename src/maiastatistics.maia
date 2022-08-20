@@ -89,7 +89,7 @@ namespace maiastatistics {
             calculateAverage = false
             calculateSum = false
             calculateNormalDistribution = false
-            calculateGaussianSequence = true
+            calculateGaussianSequence = false
             series = []
             mean = ""
             deviation = ""
@@ -686,15 +686,6 @@ namespace maiastatistics {
                             deviation = 1
                     }
 
-                    system.log(math.random())
-                    system.log(statistics.rand())
-                    system.log(statistics.rand())
-                    system.log(statistics.rand())
-                    system.log(statistics.rand())
-                    system.log(statistics.rand())
-                    system.log(statistics.rand())
-                    system.log(statistics.rand())
-                    process.exit()
                     gaussianSequance = statistics.getGaussianSequence(numberOfElements, mean, deviation)
                     outputData = core.arrayToMatrix(gaussianSequance)
                     

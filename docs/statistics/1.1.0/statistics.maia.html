@@ -51,56 +51,109 @@
 /// @namespace statistics
 ///
 namespace statistics {
-    // Random number generator initialization variables. 
+    // Random number generator initialization variables.
+    // From POSIX.1-2001. 
     RAND_MAX = 32768
-    next = 1
-    hasSpare = false
+    next = BigInt(1)
 
+    // Marsaglia polar method initialization variables.
+    spareRandom = ""
+    
     ///
     /// Random number generator.
+    /// From POSIX.1-2001. 
     /// @method rand
     /// @memberof statistics
     /// @return {object}  Returns a pseudo-random number sequence.
     ///
     function rand() {
-        this.next = math.round(this.next * 1103515245 + 12345)
-        return(((this.next / 65536) % 32768) / 32768)
+        this.next = BigInt(this.next * BigInt(1103515245) + BigInt(12345))
+        return(Number((this.next / BigInt(65536)) % BigInt(32768)) / this.RAND_MAX)
     }
 
     ///
     /// Defines a new seed for the random number generator.
+    /// From POSIX.1-2001. 
     /// @method srand
     /// @memberof statistics
     /// @param {object}   seed - The time series.
     /// @return {object}  Returns a new seed for the random number generator.
     ///
     function srand(seed) {
-        this.next = seed
+        this.next = BigInt(seed)
     }
 
     ///
     /// The Marsaglia polar method for generating a random number with a Gaussian distribution.
     /// @method getGaussianNoise
     /// @memberof statistics
+    /// @return {number}  Returns a random number with a Gaussian distribution.
+    ///
+    function getGaussianNoise() {
+        if (this.spareRandom != "") {
+            noise = this.spareRandom
+            this.spareRandom = ""
+        } else {
+            if (s == 0.0 || s >= 1.0) {
+                while (s >= 1.0 || s == 0.0) {
+                    u = this.rand() * 2.0 - 1.0
+                    v = this.rand() * 2.0 - 1.0
+                    s = u * u + v * v
+                }
+            } else {
+                u = this.rand() * 2.0 - 1.0
+                v = this.rand() * 2.0 - 1.0
+                s = u * u + v * v
+            }
+            s = math.sqrt(-2.0 * math.log(s) / s)
+            this.spareRandom = v * s
+            noise = u * s
+        }
+        return(noise)
+    }
+
+    ///
+    /// The Marsaglia polar method for generating a random number with a Gaussian distribution.
+    /// @method getGaussianNoiseScaled
+    /// @memberof statistics
     /// @param {number}   mean - The mean of the series.
     /// @param {number}   deviation - The standard deviation of the series.
     /// @return {number}  Returns a random number with a Gaussian distribution.
     ///
-    function getGaussianNoise(mean, deviation) {
-        if (this.hasSpare) {
-            this.hasSpare = false
-            return(pare * deviation + mean)
-        } else {
-            while (s >= 1.0 || s == 0.0) {
-                u = (this.rand() / this.RAND_MAX) * 2.0 - 1.0
-                v = (this.rand() / this.RAND_MAX) * 2.0 - 1.0
-                s = u * u + v * v
-            }
-            s = math.sqrt(-2.0 * math.log(s) / s)
-            spare = v * s
-            this.hasSpare = true
-            return(mean + deviation * u * s)
-        }
+    function getGaussianNoiseScaled(mean, deviation) {
+        r = this.getGaussianNoise()
+        r = r * deviation + mean
+        return(r)
+    }
+
+    ///
+    /// The Marsaglia polar method for generating a random number with a Gaussian distribution.
+    /// @method getRandomNoiseLogScaled
+    /// @memberof statistics
+    /// @param {number}   mean - The mean of the series.
+    /// @param {number}   deviation - The standard deviation of the series.
+    /// @return {number}  Returns a random number with a Gaussian distribution.
+    ///
+    function getGaussianNoiseLogScaled(mean, deviation) {
+        r = normalRandom()
+        r = r * math.log(deviation) + math.log(mean)
+        return(math.exp(r))
+    }
+
+    ///
+    /// The Marsaglia polar method for generating a random number with a Gaussian distribution.
+    /// @method getGaussianNoiseInRange
+    /// @memberof statistics
+    /// @param {number}   minimum - The minimum value.
+    /// @param {number}   maximum - The maximum value.
+    /// @return {number}  Returns a random number with a Gaussian distribution.
+    ///
+    function getGaussianNoiseInRange(minimum, maximum) {
+        r = normalRandom()
+        while(r &lt; minimum || r > maximum) {
+            r = normalRandom()
+        } 
+        return(r)
     }
 
     ///
@@ -115,7 +168,8 @@ namespace statistics {
     function getGaussianSequence(numberOfElements, mean, deviation) {
         sequence = []
         for (i = 0; i &lt; numberOfElements; i = i + 1) {
-            sequence.push(this.getGaussianNoise(mean, deviation))
+            noise = this.getGaussianNoiseScaled(mean, deviation)
+            sequence.push(0)
         }
         return(sequence)
     }
@@ -643,7 +697,7 @@ namespace statistics {
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.10</a> on Sat Aug 20 2022 00:02:01 GMT+0000 (Coordinated Universal Time)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.10</a> on Sat Aug 20 2022 15:21:21 GMT+0000 (Coordinated Universal Time)
 </footer>
 
 <script> prettyPrint(); </script>
