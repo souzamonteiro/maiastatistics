@@ -1,0 +1,3 @@
+Average: 50
+Standard deviation: 1
+Observations: 1000
