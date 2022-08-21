@@ -66,13 +66,10 @@ namespace statistics {
             noise = this.spareRandom
             this.spareRandom = ""
         } else {
-            if (s == 0.0 || s >= 1.0) {
-                while (s >= 1.0 || s == 0.0) {
-                    u = this.rand() * 2.0 - 1.0
-                    v = this.rand() * 2.0 - 1.0
-                    s = u * u + v * v
-                }
-            } else {
+            u = this.rand() * 2.0 - 1.0
+            v = this.rand() * 2.0 - 1.0
+            s = u * u + v * v
+            while (s >= 1.0 || s == 0.0) {
                 u = this.rand() * 2.0 - 1.0
                 v = this.rand() * 2.0 - 1.0
                 s = u * u + v * v
@@ -143,9 +140,6 @@ namespace statistics {
         sequence = []
         for (i = 0; i < numberOfElements; i = i + 1) {
             noise = this.getGaussianNoiseScaled(mean, deviation)
-            if (core.toString(noise) == "NaN") {
-                noise = 0
-            }
             sequence.push(noise)
         }
         return(sequence)
