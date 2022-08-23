@@ -438,6 +438,29 @@ namespace statistics {
     }
 
     ///
+    /// Returns the frequency distribution of the values in a time series.
+    /// @method getFrequencyDistribution
+    /// @memberof statistics
+    /// @param {object}   x - The array containing the values of x.
+    /// @return {number}  Returns the frequency distribution of the given time series.
+    ///
+    function getFrequencyDistribution(x) {
+        frequencyDistribution = Object()
+        for (i = 0; i < x.length; i = i + 1) {
+            if (core.type(frequencyDistribution[x[i]]) == "undefined") {
+                frequencyDistribution[x[i]] = 1
+            } else {
+                frequencyDistribution[x[i]] = frequencyDistribution[x[i]] + 1
+            }
+        }
+        frequencyDistributionMatrix = []
+        foreach (frequencyDistribution; key; value) {
+            frequencyDistributionMatrix.push([core.toNumber(key), value])
+        }
+        return(frequencyDistributionMatrix)
+    }
+
+    ///
     /// Normalizes a time series.
     /// @method normalize
     /// @memberof statistics

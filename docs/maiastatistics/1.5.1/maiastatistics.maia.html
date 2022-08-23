@@ -116,6 +116,7 @@ namespace maiastatistics {
             steps = 1
             calculateAverage = false
             calculateSum = false
+            calculateFrequencyDistribution = false
             calculateNormalDistribution = false
             calculateGaussianSequence = false
             calculateRandomSequence = false
@@ -181,6 +182,7 @@ namespace maiastatistics {
                         system.log("       --steps              Number of next steps.")
                         system.log("       --avg                Calculates the mean values, standard deviations or standard errors of cells from multiple CSV files.")
                         system.log("       --sum                Calculates the sums of cells from multiple CSV files.")
+                        system.log("       --frequency          Calculates a frequency distribution.")
                         system.log("       --normal             Calculates a normal distribution.")
                         system.log("       --series             The array containing the values of x.")
                         system.log("       --mean               The mean of the series.")
@@ -303,6 +305,8 @@ namespace maiastatistics {
                         calculateAverage = true
                     } elseif (system.argv[i] == "--sum") {
                         calculateSum = true
+                    } elseif (system.argv[i] == "--frequency") {
+                        calculateFrequencyDistribution = true
                     } elseif (system.argv[i] == "--normal") {
                         calculateNormalDistribution = true
                     } elseif (system.argv[i] == "--random") {
@@ -632,6 +636,81 @@ namespace maiastatistics {
                         sumfileContents = system.createCSV(msum, separator)
                         fs.writeFileSync(outputSumFile, sumfileContents)
                     }
+                } elseif (calculateFrequencyDistribution) {
+                    // Get the file without extension.
+                    if (inputFile != "") {
+                        glob = system.require("glob")
+
+                        files = glob.sync(inputFile)
+
+                        if (files.length == 0) {
+                            system.log("File '" + inputFile + "' not found.")
+                        } else {
+                            system.log("Processing " + files.length + " files...")
+
+                            for (fileNumber = 0; fileNumber &lt; files.length; fileNumber = fileNumber + 1) {
+                                // Get the full file name.
+                                file = files[fileNumber]
+
+                                system.log("Processing file '" + file + "'...")
+
+                                // Get the file without extension.
+                                fileName = file.split(".")
+                                fileName = fileName.shift()
+                                // Get the file name extension.
+                                fileExtension = file.split(".")
+                                fileExtension = fileExtension.pop()
+                                
+                                inputData = system.loadCSV(file, firstLine, separator, true, true)
+                                series = core.matrixToArray(inputData)
+
+                                avg = matrix.avg(series)
+                                mean = avg.avg
+                                deviation = avg.dev
+                                
+                                frequencyDistribution = statistics.getFrequencyDistribution(series)
+
+                                fileContents = system.createCSV(frequencyDistribution, separator)
+                                outputFile = fileName + "-frequency." + fileExtension
+                                fs.writeFileSync(outputFile, fileContents)
+
+                                // Saves the report file.
+                                reportFileContents = ""
+                                reportFileContents = reportFileContents + "Average: " + core.toString(mean) + "\n"
+                                reportFileContents = reportFileContents + "Standard deviation: " + core.toString(deviation) + "\n"
+                                reportFileContents = reportFileContents + "Observations: "  + core.toString(series.length) + "\n"
+                                reportFile = fileName + "-frequency-report.txt"
+                                fs.writeFileSync(reportFile, reportFileContents)
+                            }
+                        }
+                    } else {
+                        avg = matrix.avg(series)
+                        mean = avg.avg
+                        deviation = avg.dev
+                        
+                        frequencyDistribution = statistics.getFrequencyDistribution(series)
+                        
+                        if (outputFile == "") {
+                            outputFile = "output-frequency.csv"
+                        }
+                        // Get the file without extension.
+                        fileName = outputFile.split(".")
+                        fileName = fileName.shift()
+                        // Get the file name extension.
+                        fileExtension = outputFile.split(".")
+                        fileExtension = fileExtension.pop()
+
+                        fileContents = system.createCSV(frequencyDistribution, separator)
+                        fs.writeFileSync(outputFile, fileContents)
+
+                        // Saves the report file.
+                        reportFileContents = ""
+                        reportFileContents = reportFileContents + "Average: " + core.toString(mean) + "\n"
+                        reportFileContents = reportFileContents + "Standard deviation: " + core.toString(deviation) + "\n"
+                        reportFileContents = reportFileContents + "Observations: "  + core.toString(series.length) + "\n"
+                        reportFile = fileName + "-normal-report.txt"
+                        fs.writeFileSync(reportFile, reportFileContents)
+                    }
                 } elseif (calculateNormalDistribution) {
                     // Get the file without extension.
                     if (inputFile != "") {
@@ -671,7 +750,7 @@ namespace maiastatistics {
                                 }
                                 normalProbability = statistics.getNormalDistribution(series, mean, deviation)
                                 outputData = statistics.mergeMatrices(series, normalProbability)
-                               
+                                
                                 fileContents = system.createCSV(outputData, separator)
                                 outputFile = fileName + "-normal." + fileExtension
                                 fs.writeFileSync(outputFile, fileContents)
@@ -1112,7 +1191,7 @@ if (core.type(process) != "undefined") {
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.10</a> on Tue Aug 23 2022 19:47:55 GMT+0000 (Coordinated Universal Time)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.10</a> on Tue Aug 23 2022 20:52:18 GMT+0000 (Coordinated Universal Time)
 </footer>
 
 <script> prettyPrint(); </script>
