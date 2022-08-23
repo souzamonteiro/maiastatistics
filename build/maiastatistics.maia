@@ -90,6 +90,8 @@ namespace maiastatistics {
             calculateSum = false
             calculateNormalDistribution = false
             calculateGaussianSequence = false
+            calculateRandomSequence = false
+            calculateXor64Sequence = false
             series = []
             mean = ""
             deviation = ""
@@ -155,6 +157,8 @@ namespace maiastatistics {
                         system.log("       --series             The array containing the values of x.")
                         system.log("       --mean               The mean of the series.")
                         system.log("       --deviation          The standard deviation of the series.")
+                        system.log("       --ramdom             Generates a random number sequence using the POSIX.1-2001 algorithm.")
+                        system.log("       --xor64              Generates a random number sequence using the Marsaglia xorshift RNG algorithm.")
                         system.log("       --gaussian           Generates a random number sequence with a Gaussian distribution.")
                         system.log("       --plot               Draw a graphic and save it in PNG format.")
                         system.log("       --width              Chart width.")
@@ -273,6 +277,10 @@ namespace maiastatistics {
                         calculateSum = true
                     } elseif (system.argv[i] == "--normal") {
                         calculateNormalDistribution = true
+                    } elseif (system.argv[i] == "--random") {
+                        calculateRandomSequence = true
+                    } elseif (system.argv[i] == "--xor64") {
+                        calculateXor64Sequence = true
                     } elseif (system.argv[i] == "--gaussian") {
                         calculateGaussianSequence = true
                     } elseif (system.argv[i] == "--series") {
@@ -672,6 +680,9 @@ namespace maiastatistics {
                         fileExtension = outputFile.split(".")
                         fileExtension = fileExtension.pop()
 
+                        fileContents = system.createCSV(outputData, separator)
+                        fs.writeFileSync(outputFile, fileContents)
+
                         // Saves the report file.
                         reportFileContents = ""
                         reportFileContents = reportFileContents + "Average: " + core.toString(mean) + "\n"
@@ -680,6 +691,24 @@ namespace maiastatistics {
                         reportFile = fileName + "-normal-report.txt"
                         fs.writeFileSync(reportFile, reportFileContents)
                     }
+                } elseif (calculateRandomSequence) {
+                    randomSequance = statistics.getRandomSequence(numberOfElements)
+                    outputData = core.arrayToMatrix(randomSequance)
+                    
+                    if (outputFile == "") {
+                        outputFile = "output-random.csv"
+                    }
+                    fileContents = system.createCSV(outputData, separator)
+                    fs.writeFileSync(outputFile, fileContents)
+                } elseif (calculateXor64Sequence) {
+                    xor64Sequance = statistics.getXor64Sequence(numberOfElements)
+                    outputData = core.arrayToMatrix(xor64Sequance)
+                    
+                    if (outputFile == "") {
+                        outputFile = "output-xor64.csv"
+                    }
+                    fileContents = system.createCSV(outputData, separator)
+                    fs.writeFileSync(outputFile, fileContents)
                 } elseif (calculateGaussianSequence) {
                     if (mean == "" || deviation == "") {
                             mean = 0

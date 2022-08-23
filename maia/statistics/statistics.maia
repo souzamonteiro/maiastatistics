@@ -89,7 +89,39 @@ namespace statistics {
     function srandom(seed) {
         this.xorshiftSeed = BigInt(seed)
     }
+
+    ///
+    /// Generate a random sequence using the POSIX.1-2001 algorithm.
+    /// @method getRandomSequence
+    /// @memberof statistics
+    /// @param {number}   numberOfElements - Number of elements in the sequence that will be generated.
+    /// @return {number}  Returns a random number sequence using the POSIX.1-2001 algorithm.
+    ///
+    function getRandomSequence(numberOfElements) {
+        sequence = []
+        for (i = 0; i < numberOfElements; i = i + 1) {
+            noise = this.rand()
+            sequence.push(noise)
+        }
+        return(sequence)
+    }
     
+    ///
+    /// Generate a random sequence using the Marsaglia xorshift RNG algorithm.
+    /// @method getXor64Sequence
+    /// @memberof statistics
+    /// @param {number}   numberOfElements - Number of elements in the sequence that will be generated.
+    /// @return {number}  Returns a random number sequence using the Marsaglia xorshift RNG algorithm.
+    ///
+    function getXor64Sequence(numberOfElements) {
+        sequence = []
+        for (i = 0; i < numberOfElements; i = i + 1) {
+            noise = this.random()
+            sequence.push(noise)
+        }
+        return(sequence)
+    }
+
     ///
     /// The Marsaglia polar method for generating a random number with a Gaussian distribution.
     /// @method getGaussianNoise
@@ -121,7 +153,7 @@ namespace statistics {
     }
 
     ///
-    /// The Marsaglia polar method for generating a random number with a Gaussian distribution.
+    /// The Marsaglia polar method for generating a random number with a Gaussian distribution scaled.
     /// @method getGaussianNoiseScaled
     /// @memberof statistics
     /// @param {number}   mean - The mean of the series.
@@ -136,7 +168,7 @@ namespace statistics {
     }
 
     ///
-    /// The Marsaglia polar method for generating a random number with a Gaussian distribution.
+    /// The Marsaglia polar method for generating a random number with a Gaussian distribution log scaled.
     /// @method getRandomNoiseLogScaled
     /// @memberof statistics
     /// @param {number}   mean - The mean of the series.
@@ -151,7 +183,7 @@ namespace statistics {
     }
 
     ///
-    /// The Marsaglia polar method for generating a random number with a Gaussian distribution.
+    /// The Marsaglia polar method for generating a random number with a Gaussian distribution in a given range.
     /// @method getGaussianNoiseInRange
     /// @memberof statistics
     /// @param {number}   minimum - The minimum value.
@@ -167,7 +199,7 @@ namespace statistics {
     }
 
     ///
-    /// The Marsaglia polar method for generating a random number with a Gaussian distribution.
+    /// Generate a random sequence using the Marsaglia polar method for generating a random number with a Gaussian distribution.
     /// @method getGaussianSequence
     /// @memberof statistics
     /// @param {number}   numberOfElements - Number of elements in the sequence that will be generated.
