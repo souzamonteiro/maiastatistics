@@ -459,6 +459,30 @@ namespace statistics {
         }
         return(frequencyDistributionMatrix)
     }
+    
+    /// Returns an approximation to the inverse of the normal distribution.
+    /// Based on John D. Cook, A literate program to compute the inverse of the normal CDF.
+    /// https://www.johndcook.com/blog/normal_cdf_inverse/
+    /// @method getInverseNormalDistribution
+    /// @memberof statistics
+    /// @param {object}   p - The probability.
+    /// @return {number}  Returns an approximation to the inverse of the normal distribution.
+    ///
+    function getInverseNormalDistribution(p) {
+        if (p < 0.5) {
+            t = math.sqrt(-2.0 * math.log(p))
+        } else {
+            t = math.sqrt(-2.0 * math.log(1 - p))
+        }
+        c = [2.515517, 0.802853, 0.010328]
+        d = [1.432788, 0.189269, 0.001308]
+        x = t - ((c[2] * t + c[1]) * t + c[0]) / (((d[2] * t + d[1]) * t + d[0]) * t + 1.0)
+        if (p < 0.5) {
+            return(-1.0 * x)
+        } else {
+            return(x)
+        }
+    }
 
     ///
     /// Normalizes a time series.
