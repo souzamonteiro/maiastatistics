@@ -20,7 +20,7 @@
 ///
 
 ///
-/// MaiaApp core class.
+/// MaiaStatistics core class.
 /// @namespace maiastatistics
 ///
 namespace maiastatistics {
