@@ -501,11 +501,21 @@ namespace statistics {
         }
         normalizedData = []
         for (i = 0; i < data.length; i = i + 1) {
-            x = data[i, 0]
-            if (core.type(x) == "number") {
-                normalizedX = (x - minimum) / (maximum - minimum)
-                normalizedData.push([normalizedX])
+            if (core.type(data[i]) == "undefined") {
+                continue
             }
+            if (core.type(data[i, 0]) == "undefined") {
+                continue
+            }
+            if (core.type(data[i, 0]) != "number") {
+                continue
+            }
+            if (isNaN(data[i, 0])) {
+                continue
+            }
+            x = data[i, 0]
+            normalizedX = (x - minimum) / (maximum - minimum)
+            normalizedData.push([normalizedX])
         }
         return(normalizedData)
     }
@@ -522,11 +532,21 @@ namespace statistics {
     function denormalize(data, minimum, maximum) {
         denormalizedData = []
         for (i = 0; i < data.length; i = i + 1) {
-            x = data[i, 0]
-            if (core.type(x) == "number") {
-                denormalizedX = x * maximum - x * minimum + minimum
-                denormalizedData.push([denormalizedX])
+            if (core.type(data[i]) == "undefined") {
+                continue
             }
+            if (core.type(data[i, 0]) == "undefined") {
+                continue
+            }
+            if (core.type(data[i, 0]) != "number") {
+                continue
+            }
+            if (isNaN(data[i, 0])) {
+                continue
+            }
+            x = data[i, 0]
+            denormalizedX = x * maximum - x * minimum + minimum
+            denormalizedData.push([denormalizedX])
         }
         return(denormalizedData)
     }
@@ -747,6 +767,28 @@ namespace statistics {
             rhoDccaData.push([rs[i], math.sqrt(dfa1[i]), math.sqrt(dfa2[i]), dcca[i], rhodcca[i]])
         }
         return(rhoDccaData)
+    }
+
+    ///
+    /// Calculates the residual sum of squares (RSS).
+    /// @method getRhoDcca
+    /// @memberof statistics
+    /// @param {object}   data1 - The data first series.
+    /// @param {object}   data2 - The data second series.
+    /// @return {object}  Returns the residual sum of squares (RSS).
+    ///
+    function getRss(data1, data2) {
+        // Calculates the RSS.
+        rss = 0.0
+        n = data1.length
+        for (i = 0; i < n; i = i + 1) {
+            if (core.type(data1[i]) == "number") {
+                rss = rss + math.pow(data2[i] - data1[i], 2)
+            } else {
+                rss = rss + math.pow(data2[i, 0] - data1[i, 0], 2)
+            }
+        }
+        return(rss)
     }
 
     ///
