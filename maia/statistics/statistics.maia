@@ -416,7 +416,11 @@ namespace statistics {
     ///
     function getNormalProbability(x, m, s) {
         p = (1 / (s * math.sqrt(2 * math.PI))) * math.exp((-1 * math.pow(x - m, 2)) / (2 * math.pow(s, 2)))
-        return(p)
+        if (isNaN(p)) {
+            return(0.0)
+        } else {
+            return(p)
+        }
     }
 
     ///
